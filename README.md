@@ -21,8 +21,8 @@ the player `deepblue` has the following URL associated for Four Up.
 
 When it's deepblue's turn, we'll POST to that endpoint with a board state. The
 endpoint has 30 seconds to respond with a valid move. If the endpoint takes
-longer than 30 seconds, or the returned move isn't valid, the game is forfeit.
-So don't make an invalid move!
+longer than 30 seconds, or the returned move isn't valid, the game is
+forfeited.  So don't make an invalid move!
 
 ### Example Webhook
 
@@ -130,7 +130,7 @@ Content-Type: application/json
 
 ### GET /games/four-up/matches/{id}/moves
 
-```
+```js
 {
   "moves": [{
     "player": "https://battleofbits.com/players/deepblue",
