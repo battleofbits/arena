@@ -18,28 +18,24 @@ func CreatePlayer(username string, name string) (int64, *pq.Error) {
 		return -1, pqerr
 	}
 	checkError(err)
-	id, err := result.LastInsertId()
-	fmt.Println("checking insert id")
-	checkError(err)
-	return id, nil
+	return result, nil
 }
 
 func CreateGame() {
-	playerOneId, err := CreatePlayer("Kevin Burke", "kevinburke")
-	if err != nil && err.Code.Name() != "unique_violation" {
-		checkError(err)
-	}
-	playerTwoId, err := CreatePlayer("Kyle Conroy", "kyleconroy")
-	if err != nil && err.Code.Name() != "unique_violation" {
-		checkError(err)
-	}
-	fmt.Println(playerOneId)
-	fmt.Println(playerTwoId)
+	fmt.Println("creating game")
 }
 
 const URL = "http://localhost:5000"
 
 func main() {
+	_, err := CreatePlayer("Kevin Burke", "kevinburke")
+	if err != nil && err.Code.Name() != "unique_violation" {
+		checkError(err)
+	}
+	_, err = CreatePlayer("Kyle Conroy", "kyleconroy")
+	if err != nil && err.Code.Name() != "unique_violation" {
+		checkError(err)
+	}
 	CreateGame()
 	fmt.Println("done")
 }
