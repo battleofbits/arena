@@ -64,7 +64,7 @@ A valid response is a JSON move.
 ## API
 
 Each board game will have a custom media type associated with it, so that
-others can utilize the JSON representations, even outside of battleofbits. 
+others can utilize the JSON representations, even outside of battleofbits.
 
 ### GET /players
 
@@ -81,6 +81,10 @@ others can utilize the JSON representations, even outside of battleofbits.
   }]
 }
 ```
+
+### POST /players
+
+Create a new player. Username is required
 
 ### GET /games
 

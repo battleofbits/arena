@@ -1,14 +1,22 @@
-.PHONY: database
+.PHONY: database arena
+
+export GOPATH:=$(shell pwd)
 
 DATABASE=arena
+USER=postgres_arena
 
 database:
-	psql -l | grep arena || psql -f schemas/database.sql
-	psql -f schemas/players.sql -d $(DATABASE)
-	psql -f schemas/games.sql -d $(DATABASE)
-	psql -f schemas/fourup_matches.sql -d $(DATABASE)
-	psql -f schemas/fourup_moves.sql -d $(DATABASE)
+	# this top one must run as default user to grant permissions
+	psql -f schemas/user.sql 
+	psql -l | grep $(DATABASE) || psql -f schemas/database.sql -U $(USER)
+	psql -f schemas/players.sql -d $(DATABASE) -U $(USER)
+	psql -f schemas/games.sql -d $(DATABASE) -U $(USER)
+	psql -f schemas/fourup_matches.sql -d $(DATABASE) -U $(USER)
+	psql -f schemas/fourup_moves.sql -d $(DATABASE) -U $(USER)
 
 clean:
-	psql -f schemas/reset.sql -d $(DATABASE)
-	psql -f schemas/reset_database.sql
+	psql -f schemas/reset.sql -d $(DATABASE) -U $(USER) || true
+	psql -f schemas/reset_database.sql || true
+
+arena:
+	go install arena
