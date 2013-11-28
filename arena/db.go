@@ -2,7 +2,7 @@ package main
 
 import (
 	"database/sql"
-	"github.com/bmizerany/pq"
+	"github.com/lib/pq"
 	"log"
 )
 
@@ -23,7 +23,7 @@ func getConnection() *sql.DB {
 	//database := configTree.Get("database").(string)
 	//port := configTree.Get("port").(int64)
 
-	rawUrl := "postgres://postgres@localhost:5432/arena?sslmode=disable"
+	rawUrl := "postgres://postgres_arena@localhost:5432/arena?sslmode=disable"
 	url, err := pq.ParseURL(rawUrl)
 	checkError(err)
 	db, err := sql.Open("postgres", url)
