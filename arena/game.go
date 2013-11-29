@@ -9,7 +9,6 @@ import (
 func CreatePlayer(username string, name string) (*Player, error) {
 	db := getConnection()
 	_, err := db.Exec("INSERT INTO players (username, name) VALUES ($1, $2) RETURNING id", username, name)
-	fmt.Println("after insert")
 	var pqerr *pq.Error
 	if err != nil {
 		pqerr = err.(*pq.Error)
@@ -35,7 +34,6 @@ func GetPlayerByName(name string) (*Player, error) {
 	var p Player
 	db := getConnection()
 	err := db.QueryRow("SELECT * FROM players WHERE name = $1", name).Scan(&p.Username, &p.Name, &p.Id)
-	fmt.Println(p.Username)
 	if err != nil {
 		return &Player{}, err
 	} else {
@@ -47,13 +45,13 @@ type FourUpMatch struct {
 	RedPlayerId   int64
 	BlackPlayerId int64
 	Winner        int64
-	Board         [7][7]int
+	Board         *[7][7]int
 }
 
-func InitializeBoard() [7][7]int {
-	var board [7][7]int
+func InitializeBoard() *[7][7]int {
 	// Board is initialized to be filled with zeros.
-	return board
+	var board [7][7]int
+	return &board
 }
 
 func CreateFourUpMatch(redPlayer *Player, blackPlayer *Player) (*FourUpMatch, error) {
@@ -61,7 +59,6 @@ func CreateFourUpMatch(redPlayer *Player, blackPlayer *Player) (*FourUpMatch, er
 	db := getConnection()
 	_, err := db.Exec("INSERT INTO fourup_matches (player_red, player_black) VALUES ($1, $2) RETURNING id", redPlayer.Id, blackPlayer.Id)
 	checkError(err)
-	fmt.Println("returning match")
 	return &FourUpMatch{
 		RedPlayerId:   redPlayer.Id,
 		BlackPlayerId: blackPlayer.Id,
@@ -70,7 +67,7 @@ func CreateFourUpMatch(redPlayer *Player, blackPlayer *Player) (*FourUpMatch, er
 }
 
 func DoForfeit(loser *Player, reason error) {
-
+	fmt.Println(fmt.Sprintf("player %s forfeits because of %s", loser.Username, reason.Error()))
 }
 
 func DoGameOver(match *FourUpMatch, winner *Player, loser *Player) {
@@ -100,16 +97,21 @@ func DoPlayerMove(player *Player, otherPlayer *Player, match *FourUpMatch, playe
 	if err != nil {
 		DoForfeit(player, err)
 		DoGameOver(match, otherPlayer, player)
-		return nil
+		return err
 	}
 	match.Board, err = ApplyMoveToBoard(move, playerId, match.Board)
-	if GameOver(match.Board) {
-		DoGameOver(match, player, otherPlayer)
-		return nil
+	if err != nil {
+		DoForfeit(player, err)
+		DoGameOver(match, otherPlayer, player)
+		return err
 	}
-	if IsBoardFull(match.Board) {
+	if GameOver(*match.Board) {
+		DoGameOver(match, player, otherPlayer)
+		return err
+	}
+	if IsBoardFull(*match.Board) {
 		DoTieGame(match, player, otherPlayer)
-		return nil
+		return err
 	}
 	return nil
 }
@@ -118,7 +120,7 @@ func DoTieGame(match *FourUpMatch, playerOne *Player, playerTwo *Player) {
 
 }
 
-func DoMatch(match *FourUpMatch, redPlayer *Player, blackPlayer *Player) {
+func DoMatch(match *FourUpMatch, redPlayer *Player, blackPlayer *Player) *FourUpMatch {
 	for {
 		err := DoPlayerMove(redPlayer, blackPlayer, match, 1)
 		if err != nil {
@@ -129,6 +131,7 @@ func DoMatch(match *FourUpMatch, redPlayer *Player, blackPlayer *Player) {
 			break
 		}
 	}
+	return match
 }
 
 const URL = "http://localhost:5000"
@@ -138,7 +141,7 @@ func main() {
 	blackPlayer, _ := CreatePlayer("Kyle Conroy", "kyleconroy")
 	match, fourupErr := CreateFourUpMatch(redPlayer, blackPlayer)
 	checkError(fourupErr)
-	DoMatch(match, redPlayer, blackPlayer)
+	match = DoMatch(match, redPlayer, blackPlayer)
 	fmt.Println(match.Board)
 	fmt.Println("done")
 }
