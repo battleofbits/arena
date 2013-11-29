@@ -1,8 +1,37 @@
 package main
 
 import (
+	//"fmt"
 	"testing"
 )
+
+func testBoardFull(t *testing.T) {
+	fullBoard := [7][7]int{
+		[7]int{2, 2, 2, 2, 2, 2, 2},
+		[7]int{2, 2, 2, 2, 2, 2, 2},
+		[7]int{2, 2, 2, 2, 2, 2, 2},
+		[7]int{1, 2, 2, 2, 2, 2, 2},
+		[7]int{1, 2, 2, 2, 2, 2, 2},
+		[7]int{1, 2, 2, 2, 2, 2, 2},
+		[7]int{1, 2, 2, 2, 2, 2, 2},
+	}
+	if !IsBoardFull(fullBoard) {
+		t.Errorf("Full board should be marked full")
+	}
+
+	boardWithRoom := [7][7]int{
+		[7]int{2, 0, 2, 2, 2, 2, 2},
+		[7]int{2, 2, 2, 2, 2, 2, 2},
+		[7]int{2, 2, 2, 2, 2, 2, 2},
+		[7]int{1, 2, 2, 2, 2, 2, 2},
+		[7]int{1, 2, 2, 2, 2, 2, 2},
+		[7]int{1, 2, 2, 2, 2, 2, 2},
+		[7]int{1, 2, 2, 2, 2, 2, 2},
+	}
+	if IsBoardFull(boardWithRoom) {
+		t.Errorf("Board with room be marked not full")
+	}
+}
 
 func TestGameOver(t *testing.T) {
 	winVertical := [7][7]int{
@@ -81,5 +110,57 @@ func TestGameOver(t *testing.T) {
 	}
 	if GameOver(unfinishedGame) {
 		t.Errorf("Game was marked over, but wasn't over")
+	}
+}
+
+func TestApplyMoveToBoard(t *testing.T) {
+	emptyBoard := [7][7]int{
+		[7]int{0, 0, 0, 0, 0, 0, 0},
+		[7]int{0, 0, 0, 0, 0, 0, 0},
+		[7]int{0, 0, 0, 0, 0, 0, 0},
+		[7]int{0, 0, 0, 0, 0, 0, 0},
+		[7]int{0, 0, 0, 0, 0, 0, 0},
+		[7]int{0, 0, 0, 0, 0, 0, 0},
+		[7]int{0, 0, 0, 0, 0, 0, 0},
+	}
+
+	oneMoveBoard := [7][7]int{
+		[7]int{0, 0, 0, 0, 0, 0, 0},
+		[7]int{0, 0, 0, 0, 0, 0, 0},
+		[7]int{0, 0, 0, 0, 0, 0, 0},
+		[7]int{0, 0, 0, 0, 0, 0, 0},
+		[7]int{0, 0, 0, 0, 0, 0, 0},
+		[7]int{0, 0, 0, 0, 0, 0, 0},
+		[7]int{0, 0, 0, 0, 0, 0, 1},
+	}
+
+	newBoard, _ := ApplyMoveToBoard(6, 1, emptyBoard)
+	if newBoard != oneMoveBoard {
+		t.Errorf("New board does not equal board with expected move")
+	}
+
+	columnFullBoard := [7][7]int{
+		[7]int{1, 0, 0, 0, 0, 0, 0},
+		[7]int{1, 0, 0, 0, 0, 0, 0},
+		[7]int{1, 0, 0, 0, 0, 0, 0},
+		[7]int{1, 0, 0, 0, 0, 0, 0},
+		[7]int{1, 0, 0, 0, 0, 0, 0},
+		[7]int{1, 0, 0, 0, 0, 0, 0},
+		[7]int{1, 0, 0, 0, 0, 0, 0},
+	}
+
+	_, err := ApplyMoveToBoard(0, 1, columnFullBoard)
+	if err.Error() != "No room in column 0 for a move" {
+		t.Errorf("Should have rejected move in column 0, did not, error was %s", err.Error())
+	}
+
+	_, err = ApplyMoveToBoard(-22, 1, columnFullBoard)
+	if err == nil || err.Error() != "Move -22 is invalid" {
+		t.Errorf("Should have rejected negative move, did not, error was %s", err.Error())
+	}
+
+	_, err = ApplyMoveToBoard(7, 1, columnFullBoard)
+	if err == nil || err.Error() != "Move 7 is invalid" {
+		t.Errorf("Should have rejected positive move, did not, error was %s", err.Error())
 	}
 }

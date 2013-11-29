@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"github.com/lib/pq"
+	"math/rand"
 )
 
 func CreatePlayer(username string, name string) (*Player, error) {
@@ -79,7 +80,7 @@ func DoGameOver(match *FourUpMatch, winner *Player, loser *Player) {
 }
 
 func GetMove(player *Player) (int, error) {
-	return 3, nil
+	return rand.Intn(7), nil
 }
 
 func NotifyWinner(winner *Player) {
@@ -90,146 +91,41 @@ func NotifyLoser(loser *Player) {
 
 }
 
-func ApplyMoveToBoard(move int, match *FourUpMatch) error {
-	return nil
-}
-
 func MarkWinner(match *FourUpMatch, winner *Player) {
 
 }
 
-// row varies, column does not.
-func checkVerticalWin(column int, board [7][7]int) bool {
-	checkRowInColumn := func(column int, row int, board [7][7]int) bool {
-		initColor := board[row][column]
-		for k := 0; k < 4; k++ {
-			if row+k >= 7 {
-				return false
-			}
-			value := board[row+k][column]
-			if value == 0 || value != initColor {
-				return false
-			}
-		}
-		// if we get here and haven't broken, seen 4 in a row of the same color
-		return true
+func DoPlayerMove(player *Player, otherPlayer *Player, match *FourUpMatch, playerId int) error {
+	move, err := GetMove(player)
+	if err != nil {
+		DoForfeit(player, err)
+		DoGameOver(match, otherPlayer, player)
+		return nil
 	}
-
-	for row := 0; row < 4; row++ {
-		initColor := board[row][column]
-		if initColor == 0 {
-			continue
-		}
-		if checkRowInColumn(column, row, board) {
-			return true
-		}
+	match.Board, err = ApplyMoveToBoard(move, playerId, match.Board)
+	if GameOver(match.Board) {
+		DoGameOver(match, player, otherPlayer)
+		return nil
 	}
-	return false
+	if IsBoardFull(match.Board) {
+		DoTieGame(match, player, otherPlayer)
+		return nil
+	}
+	return nil
 }
 
-func checkHorizontalWin(row int, board [7][7]int) bool {
-	checkColumnInRow := func(row int, column int, board [7][7]int) bool {
-		initColor := board[row][column]
-		for k := 0; k < 4; k++ {
-			if column+k >= 7 {
-				return false
-			}
-			if board[row][column+k] != initColor {
-				return false
-			}
-		}
-		// if we get here and haven't broken, seen 4 in a row of the same color
-		return true
-	}
-	for column := 0; column < 4; column++ {
-		initColor := board[row][column]
-		if initColor == 0 {
-			continue
-		}
-		if checkColumnInRow(row, column, board) {
-			return true
-		}
-	}
-	return false
-}
+func DoTieGame(match *FourUpMatch, playerOne *Player, playerTwo *Player) {
 
-// check squares down and to the right for a match
-func checkSoutheastDiagonalWin(row int, column int, board [7][7]int) bool {
-	initColor := board[row][column]
-	if initColor == 0 {
-		return false
-	}
-	for i := 0; i < 4; i++ {
-		if board[row+i][column+i] != initColor {
-			return false
-		}
-	}
-	return true
-}
-
-func checkSouthwestDiagonalWin(row int, column int, board [7][7]int) bool {
-	initColor := board[row][column]
-	if initColor == 0 {
-		return false
-	}
-	for i := 0; i < 4; i++ {
-		if board[row-i][column+i] != initColor {
-			return false
-		}
-	}
-	return true
-}
-
-// Checks if a connect four exists
-// I'm sure there's some more efficient way to conduct these checks, but at
-// modern computer speeds, it really doesn't matter
-func GameOver(board [7][7]int) bool {
-	for i := 0; i < 7; i++ {
-		if checkVerticalWin(i, board) {
-			return true
-		}
-		if checkHorizontalWin(i, board) {
-			return true
-		}
-	}
-	for row := 0; row < 4; row++ {
-		for column := 0; column < 4; column++ {
-			if checkSoutheastDiagonalWin(row, column, board) {
-				return true
-			}
-		}
-	}
-	for row := 3; row < 7; row++ {
-		for column := 0; column < 4; column++ {
-			if checkSouthwestDiagonalWin(row, column, board) {
-				return true
-			}
-		}
-	}
-	return false
 }
 
 func DoMatch(match *FourUpMatch, redPlayer *Player, blackPlayer *Player) {
 	for {
-		move, err := GetMove(redPlayer)
+		err := DoPlayerMove(redPlayer, blackPlayer, match, 1)
 		if err != nil {
-			DoForfeit(redPlayer, err)
-			DoGameOver(match, blackPlayer, redPlayer)
-		}
-		err = ApplyMoveToBoard(move, match)
-		if GameOver(match.Board) {
-			DoGameOver(match, redPlayer, blackPlayer)
 			break
 		}
-		move, err = GetMove(blackPlayer)
+		err = DoPlayerMove(blackPlayer, redPlayer, match, 2)
 		if err != nil {
-			DoForfeit(redPlayer, err)
-			DoGameOver(match, blackPlayer, redPlayer)
-		}
-		ApplyMoveToBoard(move, match)
-		err = ApplyMoveToBoard(move, match)
-		if GameOver(match.Board) {
-			DoGameOver(match, blackPlayer, redPlayer)
 			break
 		}
 	}
