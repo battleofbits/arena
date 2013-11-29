@@ -131,9 +131,8 @@ func IsBoardFull(board [7][7]int) bool {
 
 // Returns error if the move is invalid
 func ApplyMoveToBoard(move int, playerId int, bp *[7][7]int) (*[7][7]int, error) {
-	var badBoard *[7][7]int
 	if move >= 7 || move < 0 {
-		return badBoard, errors.New(fmt.Sprintf("Move %d is invalid", move))
+		return bp, errors.New(fmt.Sprintf("Move %d is invalid", move))
 	}
 	for i := 6; i >= 0; i-- {
 		if bp[i][move] == 0 {
@@ -141,5 +140,5 @@ func ApplyMoveToBoard(move int, playerId int, bp *[7][7]int) (*[7][7]int, error)
 			return bp, nil
 		}
 	}
-	return badBoard, errors.New(fmt.Sprintf("No room in column %d for a move", move))
+	return bp, errors.New(fmt.Sprintf("No room in column %d for a move", move))
 }
