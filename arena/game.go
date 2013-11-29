@@ -22,18 +22,19 @@ func CreatePlayer(username string, name string) (*Player, error) {
 }
 
 type Player struct {
+	// The autoid for the player
+	Id int64
 	// The player's unique Id
 	Name string
 	// The player's friendly name
 	Username string
-	// The autoid for the player
-	Id int64
+	Url      string
 }
 
 func GetPlayerByName(name string) (*Player, error) {
 	var p Player
 	db := getConnection()
-	err := db.QueryRow("SELECT * FROM players WHERE name = $1", name).Scan(&p.Username, &p.Name, &p.Id)
+	err := db.QueryRow("SELECT * FROM players WHERE name = $1", name).Scan(&p.Id, &p.Username, &p.Name, &p.Url)
 	if err != nil {
 		return &Player{}, err
 	} else {
