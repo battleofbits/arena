@@ -9,17 +9,31 @@ import (
 	"net/http"
 )
 
+const URL = "http://localhost:5000/fourup"
+const BaseUri = "https://battleofbits.com"
+
+const Empty = 0
+const Red = 1
+const Black = 2
+
 type FourUpMatch struct {
-	Id            int64
-	RedPlayerId   int64
-	BlackPlayerId int64
+	Id          int64
+	RedPlayer   *Player
+	BlackPlayer *Player
+	// Whose turn is it
+	CurrentPlayer *Player
 	Winner        int64
 	Board         *[NumRows][NumColumns]int
 }
 
+type TurnPlayers struct {
+	Red   string `json:"R"`
+	Black string `json:"B"`
+}
+
 type FourUpTurn struct {
 	Href     string                      `json:"href"`
-	Players  map[string]string           `json:"players"`
+	Players  *TurnPlayers                `json:"players"`
 	Turn     string                      `json:"turn"`
 	Loser    string                      `json:"loser"`
 	Winner   string                      `json:"winner"`
@@ -33,28 +47,36 @@ type FourUpResponse struct {
 	Column int `json:"column"`
 }
 
-const URL = "http://localhost:5000/fourup"
-
-const Empty = 0
-const Red = 1
-const Black = 2
-
-func CreateFourUpMatch(redPlayer *Player, blackPlayer *Player) (*FourUpMatch, error) {
-	board := InitializeBoard()
-	match := &FourUpMatch{
-		RedPlayerId:   redPlayer.Id,
-		BlackPlayerId: blackPlayer.Id,
-		Board:         board,
+func serializeTurn(match *FourUpMatch) *FourUpTurn {
+	return &FourUpTurn{
+		Href:  getMatchHref(match.Id),
+		Board: GetStringBoard(match.Board),
+		Turn:  fmt.Sprintf(BaseUri+"/players/%s", match.CurrentPlayer.Name),
+		Players: &TurnPlayers{
+			Red:   fmt.Sprintf(BaseUri+"/players/%s", match.RedPlayer.Name),
+			Black: fmt.Sprintf(BaseUri+"/players/%s", match.BlackPlayer.Name),
+		},
 	}
+}
+
+func WriteMatch(match *FourUpMatch) error {
 	db := getConnection()
 	defer db.Close()
 	query := "INSERT INTO fourup_matches (player_red, player_black, started) " +
 		"VALUES ($1, $2, NOW() at time zone 'utc') RETURNING id"
-	err := db.QueryRow(query, redPlayer.Id, blackPlayer.Id).Scan(&match.Id)
-	if err != nil {
-		return nil, err
+	return db.QueryRow(query, match.RedPlayer.Id, match.BlackPlayer.Id).Scan(&match.Id)
+}
+
+func CreateFourUpMatch(redPlayer *Player, blackPlayer *Player) *FourUpMatch {
+	board := InitializeBoard()
+	match := &FourUpMatch{
+		RedPlayer:   redPlayer,
+		BlackPlayer: blackPlayer,
+		Board:       board,
+		// Red plays first, I believe.
+		CurrentPlayer: redPlayer,
 	}
-	return match, nil
+	return match
 }
 
 func DoForfeit(loser *Player, reason error) {
@@ -69,14 +91,7 @@ func DoGameOver(match *FourUpMatch, winner *Player, loser *Player) {
 }
 
 func getMatchHref(matchId int64) string {
-	return fmt.Sprintf("https://battleofbits.com/games/four-up/matches/%d", matchId)
-}
-
-func serializeTurn(match *FourUpMatch) *FourUpTurn {
-	return &FourUpTurn{
-		Href:  getMatchHref(match.Id),
-		Board: GetStringBoard(match.Board),
-	}
+	return fmt.Sprintf(BaseUri+"/games/four-up/matches/%d", matchId)
 }
 
 func GetMove(player *Player, match *FourUpMatch) (int, error) {
@@ -154,10 +169,12 @@ func DoTieGame(match *FourUpMatch, playerOne *Player, playerTwo *Player) {
 
 func DoMatch(match *FourUpMatch, redPlayer *Player, blackPlayer *Player) *FourUpMatch {
 	for {
+		match.CurrentPlayer = redPlayer
 		err := DoPlayerMove(redPlayer, blackPlayer, match, 1)
 		if err != nil {
 			break
 		}
+		match.CurrentPlayer = blackPlayer
 		err = DoPlayerMove(blackPlayer, redPlayer, match, 2)
 		if err != nil {
 			break
