@@ -5,7 +5,7 @@ import (
 )
 
 func testBoardFull(t *testing.T) {
-	fullBoard := [6][7]int{
+	fullBoard := [NumRows][NumColumns]int{
 		[7]int{2, 2, 2, 2, 2, 2, 2},
 		[7]int{2, 2, 2, 2, 2, 2, 2},
 		[7]int{1, 2, 2, 2, 2, 2, 2},
@@ -17,7 +17,7 @@ func testBoardFull(t *testing.T) {
 		t.Errorf("Full board should be marked full")
 	}
 
-	boardWithRoom := [6][7]int{
+	boardWithRoom := [NumRows][NumColumns]int{
 		[7]int{2, 0, 2, 2, 2, 2, 2},
 		[7]int{2, 2, 2, 2, 2, 2, 2},
 		[7]int{1, 2, 2, 2, 2, 2, 2},
@@ -31,7 +31,7 @@ func testBoardFull(t *testing.T) {
 }
 
 func TestGameOver(t *testing.T) {
-	winVertical := [6][7]int{
+	winVertical := [NumRows][NumColumns]int{
 		[7]int{0, 0, 0, 0, 0, 0, 0},
 		[7]int{0, 0, 0, 0, 0, 0, 0},
 		[7]int{1, 0, 0, 0, 0, 0, 0},
@@ -43,7 +43,7 @@ func TestGameOver(t *testing.T) {
 		t.Errorf("Game should be over if 4 vertical tiles are in a row")
 	}
 
-	winOtherVertical := [6][7]int{
+	winOtherVertical := [NumRows][NumColumns]int{
 		[7]int{0, 0, 0, 0, 0, 0, 0},
 		[7]int{0, 0, 0, 0, 0, 0, 0},
 		[7]int{0, 0, 0, 0, 0, 0, 1},
@@ -55,7 +55,7 @@ func TestGameOver(t *testing.T) {
 	if !GameOver(winOtherVertical) {
 		t.Errorf("Game should be over if 4 other vertical tiles are in a row")
 	}
-	winHorizontal := [6][7]int{
+	winHorizontal := [NumRows][NumColumns]int{
 		[7]int{0, 0, 0, 0, 0, 0, 0},
 		[7]int{0, 0, 0, 0, 0, 0, 0},
 		[7]int{0, 0, 1, 1, 1, 1, 0},
@@ -67,7 +67,7 @@ func TestGameOver(t *testing.T) {
 		t.Errorf("Game should be over if 4 horizontal tiles are in a row")
 	}
 
-	winDiagonal := [6][7]int{
+	winDiagonal := [NumRows][NumColumns]int{
 		[7]int{0, 0, 0, 0, 0, 0, 0},
 		[7]int{0, 0, 0, 0, 0, 0, 0},
 		[7]int{0, 0, 1, 0, 0, 0, 0},
@@ -79,7 +79,7 @@ func TestGameOver(t *testing.T) {
 		t.Errorf("Game should be over if 4 southeast diagonal tiles are in a row")
 	}
 
-	winSouthwestDiagonal := [6][7]int{
+	winSouthwestDiagonal := [NumRows][NumColumns]int{
 		[7]int{0, 0, 0, 0, 0, 0, 0},
 		[7]int{0, 0, 0, 0, 0, 0, 0},
 		[7]int{0, 0, 0, 0, 1, 0, 0},
@@ -91,7 +91,7 @@ func TestGameOver(t *testing.T) {
 		t.Errorf("Game should be over if 4 southwest diagonal tiles are in a row")
 	}
 
-	unfinishedGame := [6][7]int{
+	unfinishedGame := [NumRows][NumColumns]int{
 		[7]int{0, 2, 0, 2, 0, 0, 0},
 		[7]int{0, 0, 2, 2, 1, 1, 1},
 		[7]int{0, 0, 1, 1, 2, 2, 2},
@@ -105,7 +105,7 @@ func TestGameOver(t *testing.T) {
 }
 
 func TestApplyMoveToBoard(t *testing.T) {
-	emptyBoard := [6][7]int{
+	emptyBoard := [NumRows][NumColumns]int{
 		[7]int{0, 0, 0, 0, 0, 0, 0},
 		[7]int{0, 0, 0, 0, 0, 0, 0},
 		[7]int{0, 0, 0, 0, 0, 0, 0},
@@ -114,7 +114,7 @@ func TestApplyMoveToBoard(t *testing.T) {
 		[7]int{0, 0, 0, 0, 0, 0, 0},
 	}
 
-	oneMoveBoard := [6][7]int{
+	oneMoveBoard := [NumRows][NumColumns]int{
 		[7]int{0, 0, 0, 0, 0, 0, 0},
 		[7]int{0, 0, 0, 0, 0, 0, 0},
 		[7]int{0, 0, 0, 0, 0, 0, 0},
@@ -128,7 +128,7 @@ func TestApplyMoveToBoard(t *testing.T) {
 		t.Errorf("New board does not equal board with expected move")
 	}
 
-	columnFullBoard := [6][7]int{
+	columnFullBoard := [NumRows][NumColumns]int{
 		[7]int{1, 0, 0, 0, 0, 0, 0},
 		[7]int{1, 0, 0, 0, 0, 0, 0},
 		[7]int{1, 0, 0, 0, 0, 0, 0},
