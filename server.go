@@ -2,6 +2,7 @@ package arena
 
 import (
 	"encoding/json"
+	//"fmt"
 	"github.com/hoisie/web"
 )
 
@@ -12,6 +13,7 @@ func players(ctx *web.Context) []byte {
 	return jsonPlayers
 }
 
-func main() {
+func doServer() {
 	web.Get("/players", players)
+	web.Run("0.0.0.0:9999")
 }

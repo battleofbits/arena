@@ -11,9 +11,9 @@ type Player struct {
 	// The autoid for the player
 	Id int64 `json:"-"`
 	// The player's unique Id
-	Name string
+	Name string `json:"name"`
 	// The player's friendly name
-	Username string
+	Username string `json:"username"`
 	Url      string `json:"-"`
 	Href     string `json:"href"`
 }
@@ -29,15 +29,15 @@ func (p *Player) SetHref() {
 
 func GetPlayers() []*Player {
 	db := getConnection()
-	rows, err := db.Query("SELECT (username, name) from players")
+	rows, err := db.Query("SELECT username, name from players")
 	checkError(err)
 	var players []*Player
 	for rows.Next() {
-		var p *Player
+		var p Player
 		err = rows.Scan(&p.Username, &p.Name)
-		p.SetHref()
 		checkError(err)
-		players = append(players, p)
+		p.SetHref()
+		players = append(players, &p)
 	}
 	return players
 }
