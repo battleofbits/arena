@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/lib/pq"
-	"math/rand"
+	"io/ioutil"
 	"net/http"
 )
 
@@ -55,6 +55,7 @@ type FourUpTurn struct {
 }
 
 type FourUpResponse struct {
+	Column int `json:"column"`
 }
 
 func GetPlayerByName(name string) (*Player, error) {
@@ -77,7 +78,6 @@ func CreateFourUpMatch(redPlayer *Player, blackPlayer *Player) (*FourUpMatch, er
 	}
 	db := getConnection()
 	err := db.QueryRow("INSERT INTO fourup_matches (player_red, player_black) VALUES ($1, $2) RETURNING id", redPlayer.Id, blackPlayer.Id).Scan(&match.Id)
-	fmt.Println(fmt.Sprintf("Id is %d", match.Id))
 	checkError(err)
 	return match, nil
 }
@@ -96,25 +96,39 @@ func getHref(id int64) string {
 	return fmt.Sprintf("https://battleofbits.com/games/four-up/matches/%d", id)
 }
 
-func serializeBody(match *FourUpMatch) *FourUpTurn {
+func serializeTurn(match *FourUpMatch) *FourUpTurn {
 	return &FourUpTurn{
-		Href: getHref(match.Id),
+		Href:  getHref(match.Id),
+		Board: match.Board,
 	}
 }
 
 func GetMove(player *Player, match *FourUpMatch) (int, error) {
-	body := serializeBody(match)
-	postBody, err := json.Marshal(body)
+	turn := serializeTurn(match)
+	postBody, err := json.Marshal(turn)
 	checkError(err)
 	req, err := http.NewRequest("POST", player.Url, bytes.NewReader(postBody))
-	checkError(err)
+	if err != nil {
+		return -1, err
+	}
 	client := &http.Client{}
 	req.Header.Add("Content-Type", "application/json")
 	req.Header.Add("User-Agent", "battleofbits/0.1")
-	resp, err := client.Do(req)
-	fmt.Println(resp)
-	checkError(err)
-	return rand.Intn(NumColumns), nil
+	httpResponse, err := client.Do(req)
+	if err != nil {
+		return -1, err
+	}
+	defer httpResponse.Body.Close()
+	body, err := ioutil.ReadAll(httpResponse.Body)
+	if err != nil {
+		return -1, err
+	}
+	var response FourUpResponse
+	err = json.Unmarshal(body, &response)
+	if err != nil {
+		return -1, err
+	}
+	return response.Column, nil
 }
 
 func NotifyWinner(winner *Player) {
