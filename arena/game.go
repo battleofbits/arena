@@ -52,7 +52,12 @@ const Black = 2
 
 func CreatePlayer(username string, name string, url string) (*Player, error) {
 	db := getConnection()
-	_, err := db.Exec("INSERT INTO players (username, name, url) VALUES ($1, $2, $3) RETURNING id", username, name, url)
+	player := &Player{
+		Username: username,
+		Name:     name,
+		Url:      url,
+	}
+	err := db.QueryRow("INSERT INTO players (username, name, url) VALUES ($1, $2, $3) RETURNING id", username, name, url).Scan(&player.Id)
 	var pqerr *pq.Error
 	if err != nil {
 		pqerr = err.(*pq.Error)
@@ -61,8 +66,7 @@ func CreatePlayer(username string, name string, url string) (*Player, error) {
 		return &Player{}, pqerr
 	}
 	checkError(err)
-	// XXX
-	return GetPlayerByName(name)
+	return player, nil
 }
 
 func GetPlayerByName(name string) (*Player, error) {
