@@ -46,7 +46,7 @@ type FourUpMatch struct {
 	RedPlayerId   int64
 	BlackPlayerId int64
 	Winner        int64
-	Board         *[6][7]int
+	Board         *[NumRows][NumColumns]int
 }
 
 func CreateFourUpMatch(redPlayer *Player, blackPlayer *Player) (*FourUpMatch, error) {
@@ -72,7 +72,7 @@ func DoGameOver(match *FourUpMatch, winner *Player, loser *Player) {
 }
 
 func GetMove(player *Player) (int, error) {
-	return rand.Intn(7), nil
+	return rand.Intn(NumColumns), nil
 }
 
 func NotifyWinner(winner *Player) {
