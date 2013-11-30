@@ -144,11 +144,11 @@ func GetMove(player *Player, match *FourUpMatch) (int, error) {
 }
 
 func NotifyWinner(winner *Player) {
-
+	fmt.Println("Notifying winner...")
 }
 
 func NotifyLoser(loser *Player) {
-
+	fmt.Println("Notifying winner...")
 }
 
 func MarkWinner(match *FourUpMatch, winner *Player) {
@@ -180,7 +180,7 @@ func DoPlayerMove(player *Player, otherPlayer *Player, match *FourUpMatch, playe
 }
 
 func DoTieGame(match *FourUpMatch, playerOne *Player, playerTwo *Player) {
-	fmt.Println("Board is full.")
+	fmt.Println("Tie Game!")
 }
 
 func DoMatch(match *FourUpMatch, redPlayer *Player, blackPlayer *Player) *FourUpMatch {
