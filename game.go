@@ -85,6 +85,21 @@ func WriteMatch(match *FourUpMatch) error {
 	return db.QueryRow(query, match.RedPlayer.Id, match.BlackPlayer.Id, string(jsonBoard)).Scan(&match.Id)
 }
 
+// Update the match in the database
+// Assumes the match has been initialized at some point
+func UpdateMatch(match *FourUpMatch) error {
+	db := getConnection()
+	defer db.Close()
+	stringBoard := GetStringBoard(match.Board)
+	jsonBoard, err := json.Marshal(stringBoard)
+	if err != nil {
+		return err
+	}
+	query := "UPDATE fourup_matches SET board = $1 WHERE id = $2"
+	_, err = db.Exec(query, string(jsonBoard), match.Id)
+	return err
+}
+
 func DoForfeit(loser *Player, reason error) {
 	fmt.Println(fmt.Sprintf("player %s forfeits because of %s", loser.Username, reason.Error()))
 }
@@ -186,11 +201,16 @@ func DoMatch(match *FourUpMatch, redPlayer *Player, blackPlayer *Player) *FourUp
 	for {
 		match.CurrentPlayer = redPlayer
 		err := DoPlayerMove(redPlayer, blackPlayer, match, 1)
+		// XXX, evaluate positioning of this update.
+		UpdateMatch(match)
 		if err != nil {
 			break
 		}
+
 		match.CurrentPlayer = blackPlayer
 		err = DoPlayerMove(blackPlayer, redPlayer, match, 2)
+		// XXX, evaluate logic here
+		UpdateMatch(match)
 		if err != nil {
 			break
 		}
