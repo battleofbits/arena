@@ -52,6 +52,7 @@ const Black = 2
 
 func CreatePlayer(username string, name string, url string) (*Player, error) {
 	db := getConnection()
+	defer db.Close()
 	player := &Player{
 		Username: username,
 		Name:     name,
@@ -72,6 +73,7 @@ func CreatePlayer(username string, name string, url string) (*Player, error) {
 func GetPlayerByName(name string) (*Player, error) {
 	var p Player
 	db := getConnection()
+	defer db.Close()
 	err := db.QueryRow("SELECT * FROM players WHERE name = $1", name).Scan(&p.Id, &p.Username, &p.Name, &p.Url)
 	if err != nil {
 		return &Player{}, err
@@ -88,6 +90,7 @@ func CreateFourUpMatch(redPlayer *Player, blackPlayer *Player) (*FourUpMatch, er
 		Board:         board,
 	}
 	db := getConnection()
+	defer db.Close()
 	err := db.QueryRow("INSERT INTO fourup_matches (player_red, player_black) VALUES ($1, $2) RETURNING id", redPlayer.Id, blackPlayer.Id).Scan(&match.Id)
 	checkError(err)
 	return match, nil
@@ -148,11 +151,15 @@ func NotifyWinner(winner *Player) {
 }
 
 func NotifyLoser(loser *Player) {
-	fmt.Println("Notifying winner...")
+	fmt.Println("Notifying loser...")
 }
 
-func MarkWinner(match *FourUpMatch, winner *Player) {
-
+func MarkWinner(match *FourUpMatch, winner *Player) error {
+	db := getConnection()
+	defer db.Close()
+	_, err := db.Exec("UPDATE fourup_matches SET winner = $1 WHERE id = $2",
+		winner.Id, match.Id)
+	return err
 }
 
 func DoPlayerMove(player *Player, otherPlayer *Player, match *FourUpMatch, playerId int) error {
