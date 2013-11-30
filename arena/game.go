@@ -91,7 +91,10 @@ func CreateFourUpMatch(redPlayer *Player, blackPlayer *Player) (*FourUpMatch, er
 	}
 	db := getConnection()
 	defer db.Close()
-	err := db.QueryRow("INSERT INTO fourup_matches (player_red, player_black, started) VALUES ($1, $2, NOW() at time zone 'utc') RETURNING id", redPlayer.Id, blackPlayer.Id).Scan(&match.Id)
+	err := db.QueryRow("INSERT INTO fourup_matches "+
+		"(player_red, player_black, started) VALUES "+
+		"($1, $2, NOW() at time zone 'utc') RETURNING id",
+		redPlayer.Id, blackPlayer.Id).Scan(&match.Id)
 	checkError(err)
 	return match, nil
 }
@@ -157,7 +160,8 @@ func NotifyLoser(loser *Player) {
 func MarkWinner(match *FourUpMatch, winner *Player) error {
 	db := getConnection()
 	defer db.Close()
-	_, err := db.Exec("UPDATE fourup_matches SET winner = $1, finished = NOW() at time zone 'utc' WHERE id = $2",
+	_, err := db.Exec("UPDATE fourup_matches SET winner = $1, "+
+		"finished = NOW() at time zone 'utc' WHERE id = $2",
 		winner.Id, match.Id)
 	return err
 }
