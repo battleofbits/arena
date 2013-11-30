@@ -16,5 +16,5 @@ func TestPlayersList(t *testing.T) {
 	defer resp.Body.Close()
 	body, err := ioutil.ReadAll(resp.Body)
 	fmt.Println(string(body))
-	t.Errorf("test failed!")
+	t.Errorf("XXX: this fails the test so you can see the console output")
 }

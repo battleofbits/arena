@@ -48,18 +48,12 @@ func CreateFourUpMatch(redPlayer *Player, blackPlayer *Player) (*FourUpMatch, er
 	}
 	db := getConnection()
 	defer db.Close()
-	query := "INSERT INTO fourup_matches " +
-		"(player_red, player_black, started) VALUES " +
-		"($1, $2, NOW() at time zone 'utc') RETURNING id"
-	fmt.Println(query)
-	fmt.Println(redPlayer.Id)
-	fmt.Println(blackPlayer.Id)
-	err := db.QueryRow(query,
-		redPlayer.Id, blackPlayer.Id).Scan(&match.Id)
+	query := "INSERT INTO fourup_matches (player_red, player_black, started) " +
+		"VALUES ($1, $2, NOW() at time zone 'utc') RETURNING id"
+	err := db.QueryRow(query, redPlayer.Id, blackPlayer.Id).Scan(&match.Id)
 	if err != nil {
 		return nil, err
 	}
-	fmt.Println("after query")
 	return match, nil
 }
 
