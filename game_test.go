@@ -13,7 +13,10 @@ func TestGetMatchHref(t *testing.T) {
 }
 
 func TestDoGame(t *testing.T) {
-	redPlayer, _ := CreatePlayer("Kevin Burke", "kevinburke", URL)
+	redPlayer, redErr := CreatePlayer("Kevin Burke", "kevinburke", URL)
+	if redErr != nil {
+		t.Fatalf(redErr.Error())
+	}
 	blackPlayer, _ := CreatePlayer("Kyle Conroy", "kyleconroy", URL)
 	match, fourupErr := CreateFourUpMatch(redPlayer, blackPlayer)
 	if fourupErr != nil {
