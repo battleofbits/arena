@@ -18,7 +18,7 @@ func checkVerticalWin(column int, board [NumRows][NumColumns]int) bool {
 	checkRowInColumn := func(column int, row int, board [NumRows][NumColumns]int) bool {
 		initColor := board[row][column]
 		for k := 0; k < NumConsecutive; k++ {
-			if row+k >= NumColumns {
+			if row+k >= NumRows {
 				return false
 			}
 			value := board[row+k][column]
@@ -30,7 +30,7 @@ func checkVerticalWin(column int, board [NumRows][NumColumns]int) bool {
 		return true
 	}
 
-	for row := 0; row < NumConsecutive; row++ {
+	for row := 0; row <= (NumRows - NumConsecutive); row++ {
 		initColor := board[row][column]
 		if initColor == EmptySpace {
 			continue

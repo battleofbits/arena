@@ -4,7 +4,7 @@ import (
 	"testing"
 )
 
-func testBoardFull(t *testing.T) {
+func TestBoardFull(t *testing.T) {
 	fullBoard := [NumRows][NumColumns]int{
 		[7]int{2, 2, 2, 2, 2, 2, 2},
 		[7]int{2, 2, 2, 2, 2, 2, 2},
@@ -31,6 +31,19 @@ func testBoardFull(t *testing.T) {
 }
 
 func TestGameOver(t *testing.T) {
+
+	winThirdVertical := [NumRows][NumColumns]int{
+		[7]int{0, 0, 0, 0, 0, 0, 1},
+		[7]int{0, 0, 0, 0, 0, 0, 1},
+		[7]int{0, 0, 0, 0, 0, 0, 1},
+		[7]int{1, 0, 0, 0, 0, 0, 1},
+		[7]int{1, 0, 0, 0, 0, 0, 2},
+		[7]int{1, 0, 0, 0, 0, 0, 2},
+	}
+	if !GameOver(winThirdVertical) {
+		t.Errorf("Game should be over if 4 vertical tiles starting in top row, form a connect four")
+	}
+
 	winVertical := [NumRows][NumColumns]int{
 		[7]int{0, 0, 0, 0, 0, 0, 0},
 		[7]int{0, 0, 0, 0, 0, 0, 0},
@@ -51,10 +64,10 @@ func TestGameOver(t *testing.T) {
 		[7]int{0, 0, 0, 0, 0, 0, 1},
 		[7]int{0, 0, 0, 0, 0, 0, 1},
 	}
-
 	if !GameOver(winOtherVertical) {
 		t.Errorf("Game should be over if 4 other vertical tiles are in a row")
 	}
+
 	winHorizontal := [NumRows][NumColumns]int{
 		[7]int{0, 0, 0, 0, 0, 0, 0},
 		[7]int{0, 0, 0, 0, 0, 0, 0},

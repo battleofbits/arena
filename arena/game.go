@@ -1,14 +1,17 @@
 package main
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
 	"github.com/lib/pq"
 	"math/rand"
+	"net/http"
 )
 
-func CreatePlayer(username string, name string) (*Player, error) {
+func CreatePlayer(username string, name string, url string) (*Player, error) {
 	db := getConnection()
-	_, err := db.Exec("INSERT INTO players (username, name) VALUES ($1, $2) RETURNING id", username, name)
+	_, err := db.Exec("INSERT INTO players (username, name, url) VALUES ($1, $2, $3) RETURNING id", username, name, url)
 	var pqerr *pq.Error
 	if err != nil {
 		pqerr = err.(*pq.Error)
@@ -31,6 +34,29 @@ type Player struct {
 	Url      string
 }
 
+type FourUpMatch struct {
+	Id            int64
+	RedPlayerId   int64
+	BlackPlayerId int64
+	Winner        int64
+	Board         *[NumRows][NumColumns]int
+}
+
+type FourUpTurn struct {
+	Href     string                      `json:"href"`
+	Players  map[string]string           `json:"players"`
+	Turn     string                      `json:"turn"`
+	Loser    string                      `json:"loser"`
+	Winner   string                      `json:"winner"`
+	Started  string                      `json:"started"`
+	Finished string                      `json:"finished"`
+	Moves    string                      `json:"moves"`
+	Board    [NumRows][NumColumns]string `json:"board"`
+}
+
+type FourUpResponse struct {
+}
+
 func GetPlayerByName(name string) (*Player, error) {
 	var p Player
 	db := getConnection()
@@ -42,23 +68,18 @@ func GetPlayerByName(name string) (*Player, error) {
 	}
 }
 
-type FourUpMatch struct {
-	RedPlayerId   int64
-	BlackPlayerId int64
-	Winner        int64
-	Board         *[NumRows][NumColumns]int
-}
-
 func CreateFourUpMatch(redPlayer *Player, blackPlayer *Player) (*FourUpMatch, error) {
 	board := InitializeBoard()
-	db := getConnection()
-	_, err := db.Exec("INSERT INTO fourup_matches (player_red, player_black) VALUES ($1, $2) RETURNING id", redPlayer.Id, blackPlayer.Id)
-	checkError(err)
-	return &FourUpMatch{
+	match := &FourUpMatch{
 		RedPlayerId:   redPlayer.Id,
 		BlackPlayerId: blackPlayer.Id,
 		Board:         board,
-	}, nil
+	}
+	db := getConnection()
+	err := db.QueryRow("INSERT INTO fourup_matches (player_red, player_black) VALUES ($1, $2) RETURNING id", redPlayer.Id, blackPlayer.Id).Scan(&match.Id)
+	fmt.Println(fmt.Sprintf("Id is %d", match.Id))
+	checkError(err)
+	return match, nil
 }
 
 func DoForfeit(loser *Player, reason error) {
@@ -71,7 +92,28 @@ func DoGameOver(match *FourUpMatch, winner *Player, loser *Player) {
 	NotifyLoser(loser)
 }
 
-func GetMove(player *Player) (int, error) {
+func getHref(id int64) string {
+	return fmt.Sprintf("https://battleofbits.com/games/four-up/matches/%d", id)
+}
+
+func serializeBody(match *FourUpMatch) *FourUpTurn {
+	return &FourUpTurn{
+		Href: getHref(match.Id),
+	}
+}
+
+func GetMove(player *Player, match *FourUpMatch) (int, error) {
+	body := serializeBody(match)
+	postBody, err := json.Marshal(body)
+	checkError(err)
+	req, err := http.NewRequest("POST", player.Url, bytes.NewReader(postBody))
+	checkError(err)
+	client := &http.Client{}
+	req.Header.Add("Content-Type", "application/json")
+	req.Header.Add("User-Agent", "battleofbits/0.1")
+	resp, err := client.Do(req)
+	fmt.Println(resp)
+	checkError(err)
 	return rand.Intn(NumColumns), nil
 }
 
@@ -88,7 +130,7 @@ func MarkWinner(match *FourUpMatch, winner *Player) {
 }
 
 func DoPlayerMove(player *Player, otherPlayer *Player, match *FourUpMatch, playerId int) error {
-	move, err := GetMove(player)
+	move, err := GetMove(player, match)
 	if err != nil {
 		DoForfeit(player, err)
 		DoGameOver(match, otherPlayer, player)
@@ -129,11 +171,11 @@ func DoMatch(match *FourUpMatch, redPlayer *Player, blackPlayer *Player) *FourUp
 	return match
 }
 
-const URL = "http://localhost:5000"
+const URL = "http://localhost:5000/fourup"
 
 func main() {
-	redPlayer, _ := CreatePlayer("Kevin Burke", "kevinburke")
-	blackPlayer, _ := CreatePlayer("Kyle Conroy", "kyleconroy")
+	redPlayer, _ := CreatePlayer("Kevin Burke", "kevinburke", URL)
+	blackPlayer, _ := CreatePlayer("Kyle Conroy", "kyleconroy", URL)
 	match, fourupErr := CreateFourUpMatch(redPlayer, blackPlayer)
 	checkError(fourupErr)
 	match = DoMatch(match, redPlayer, blackPlayer)
