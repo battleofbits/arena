@@ -46,13 +46,7 @@ type FourUpMatch struct {
 	RedPlayerId   int64
 	BlackPlayerId int64
 	Winner        int64
-	Board         *[7][7]int
-}
-
-func InitializeBoard() *[7][7]int {
-	// Board is initialized to be filled with zeros.
-	var board [7][7]int
-	return &board
+	Board         *[6][7]int
 }
 
 func CreateFourUpMatch(redPlayer *Player, blackPlayer *Player) (*FourUpMatch, error) {

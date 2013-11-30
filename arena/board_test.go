@@ -1,13 +1,11 @@
 package main
 
 import (
-	//"fmt"
 	"testing"
 )
 
 func testBoardFull(t *testing.T) {
-	fullBoard := [7][7]int{
-		[7]int{2, 2, 2, 2, 2, 2, 2},
+	fullBoard := [6][7]int{
 		[7]int{2, 2, 2, 2, 2, 2, 2},
 		[7]int{2, 2, 2, 2, 2, 2, 2},
 		[7]int{1, 2, 2, 2, 2, 2, 2},
@@ -19,9 +17,8 @@ func testBoardFull(t *testing.T) {
 		t.Errorf("Full board should be marked full")
 	}
 
-	boardWithRoom := [7][7]int{
+	boardWithRoom := [6][7]int{
 		[7]int{2, 0, 2, 2, 2, 2, 2},
-		[7]int{2, 2, 2, 2, 2, 2, 2},
 		[7]int{2, 2, 2, 2, 2, 2, 2},
 		[7]int{1, 2, 2, 2, 2, 2, 2},
 		[7]int{1, 2, 2, 2, 2, 2, 2},
@@ -34,8 +31,7 @@ func testBoardFull(t *testing.T) {
 }
 
 func TestGameOver(t *testing.T) {
-	winVertical := [7][7]int{
-		[7]int{0, 0, 0, 0, 0, 0, 0},
+	winVertical := [6][7]int{
 		[7]int{0, 0, 0, 0, 0, 0, 0},
 		[7]int{0, 0, 0, 0, 0, 0, 0},
 		[7]int{1, 0, 0, 0, 0, 0, 0},
@@ -47,8 +43,7 @@ func TestGameOver(t *testing.T) {
 		t.Errorf("Game should be over if 4 vertical tiles are in a row")
 	}
 
-	winOtherVertical := [7][7]int{
-		[7]int{0, 0, 0, 0, 0, 0, 0},
+	winOtherVertical := [6][7]int{
 		[7]int{0, 0, 0, 0, 0, 0, 0},
 		[7]int{0, 0, 0, 0, 0, 0, 0},
 		[7]int{0, 0, 0, 0, 0, 0, 1},
@@ -60,8 +55,7 @@ func TestGameOver(t *testing.T) {
 	if !GameOver(winOtherVertical) {
 		t.Errorf("Game should be over if 4 other vertical tiles are in a row")
 	}
-	winHorizontal := [7][7]int{
-		[7]int{0, 0, 0, 0, 0, 0, 0},
+	winHorizontal := [6][7]int{
 		[7]int{0, 0, 0, 0, 0, 0, 0},
 		[7]int{0, 0, 0, 0, 0, 0, 0},
 		[7]int{0, 0, 1, 1, 1, 1, 0},
@@ -73,8 +67,7 @@ func TestGameOver(t *testing.T) {
 		t.Errorf("Game should be over if 4 horizontal tiles are in a row")
 	}
 
-	winDiagonal := [7][7]int{
-		[7]int{0, 0, 0, 0, 0, 0, 0},
+	winDiagonal := [6][7]int{
 		[7]int{0, 0, 0, 0, 0, 0, 0},
 		[7]int{0, 0, 0, 0, 0, 0, 0},
 		[7]int{0, 0, 1, 0, 0, 0, 0},
@@ -86,8 +79,7 @@ func TestGameOver(t *testing.T) {
 		t.Errorf("Game should be over if 4 southeast diagonal tiles are in a row")
 	}
 
-	winSouthwestDiagonal := [7][7]int{
-		[7]int{0, 0, 0, 0, 0, 0, 0},
+	winSouthwestDiagonal := [6][7]int{
 		[7]int{0, 0, 0, 0, 0, 0, 0},
 		[7]int{0, 0, 0, 0, 0, 0, 0},
 		[7]int{0, 0, 0, 0, 1, 0, 0},
@@ -99,8 +91,7 @@ func TestGameOver(t *testing.T) {
 		t.Errorf("Game should be over if 4 southwest diagonal tiles are in a row")
 	}
 
-	unfinishedGame := [7][7]int{
-		[7]int{2, 0, 0, 1, 0, 0, 0},
+	unfinishedGame := [6][7]int{
 		[7]int{0, 2, 0, 2, 0, 0, 0},
 		[7]int{0, 0, 2, 2, 1, 1, 1},
 		[7]int{0, 0, 1, 1, 2, 2, 2},
@@ -114,8 +105,7 @@ func TestGameOver(t *testing.T) {
 }
 
 func TestApplyMoveToBoard(t *testing.T) {
-	emptyBoard := [7][7]int{
-		[7]int{0, 0, 0, 0, 0, 0, 0},
+	emptyBoard := [6][7]int{
 		[7]int{0, 0, 0, 0, 0, 0, 0},
 		[7]int{0, 0, 0, 0, 0, 0, 0},
 		[7]int{0, 0, 0, 0, 0, 0, 0},
@@ -124,8 +114,7 @@ func TestApplyMoveToBoard(t *testing.T) {
 		[7]int{0, 0, 0, 0, 0, 0, 0},
 	}
 
-	oneMoveBoard := [7][7]int{
-		[7]int{0, 0, 0, 0, 0, 0, 0},
+	oneMoveBoard := [6][7]int{
 		[7]int{0, 0, 0, 0, 0, 0, 0},
 		[7]int{0, 0, 0, 0, 0, 0, 0},
 		[7]int{0, 0, 0, 0, 0, 0, 0},
@@ -134,13 +123,12 @@ func TestApplyMoveToBoard(t *testing.T) {
 		[7]int{0, 0, 0, 0, 0, 0, 1},
 	}
 
-	newBoard, _ := ApplyMoveToBoard(6, 1, emptyBoard)
-	if newBoard != oneMoveBoard {
+	newBoard, _ := ApplyMoveToBoard(6, 1, &emptyBoard)
+	if *newBoard != oneMoveBoard {
 		t.Errorf("New board does not equal board with expected move")
 	}
 
-	columnFullBoard := [7][7]int{
-		[7]int{1, 0, 0, 0, 0, 0, 0},
+	columnFullBoard := [6][7]int{
 		[7]int{1, 0, 0, 0, 0, 0, 0},
 		[7]int{1, 0, 0, 0, 0, 0, 0},
 		[7]int{1, 0, 0, 0, 0, 0, 0},
@@ -149,17 +137,17 @@ func TestApplyMoveToBoard(t *testing.T) {
 		[7]int{1, 0, 0, 0, 0, 0, 0},
 	}
 
-	_, err := ApplyMoveToBoard(0, 1, columnFullBoard)
+	_, err := ApplyMoveToBoard(0, 1, &columnFullBoard)
 	if err.Error() != "No room in column 0 for a move" {
 		t.Errorf("Should have rejected move in column 0, did not, error was %s", err.Error())
 	}
 
-	_, err = ApplyMoveToBoard(-22, 1, columnFullBoard)
+	_, err = ApplyMoveToBoard(-22, 1, &columnFullBoard)
 	if err == nil || err.Error() != "Move -22 is invalid" {
 		t.Errorf("Should have rejected negative move, did not, error was %s", err.Error())
 	}
 
-	_, err = ApplyMoveToBoard(7, 1, columnFullBoard)
+	_, err = ApplyMoveToBoard(7, 1, &columnFullBoard)
 	if err == nil || err.Error() != "Move 7 is invalid" {
 		t.Errorf("Should have rejected positive move, did not, error was %s", err.Error())
 	}

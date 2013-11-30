@@ -9,8 +9,8 @@ import (
 // Author: Kevin Burke <kev@inburke.com>
 
 // row varies, column does not.
-func checkVerticalWin(column int, board [7][7]int) bool {
-	checkRowInColumn := func(column int, row int, board [7][7]int) bool {
+func checkVerticalWin(column int, board [6][7]int) bool {
+	checkRowInColumn := func(column int, row int, board [6][7]int) bool {
 		initColor := board[row][column]
 		for k := 0; k < 4; k++ {
 			if row+k >= 7 {
@@ -37,8 +37,8 @@ func checkVerticalWin(column int, board [7][7]int) bool {
 	return false
 }
 
-func checkHorizontalWin(row int, board [7][7]int) bool {
-	checkColumnInRow := func(row int, column int, board [7][7]int) bool {
+func checkHorizontalWin(row int, board [6][7]int) bool {
+	checkColumnInRow := func(row int, column int, board [6][7]int) bool {
 		initColor := board[row][column]
 		for k := 0; k < 4; k++ {
 			if column+k >= 7 {
@@ -64,7 +64,7 @@ func checkHorizontalWin(row int, board [7][7]int) bool {
 }
 
 // check squares down and to the right for a match
-func checkSoutheastDiagonalWin(row int, column int, board [7][7]int) bool {
+func checkSoutheastDiagonalWin(row int, column int, board [6][7]int) bool {
 	initColor := board[row][column]
 	if initColor == 0 {
 		return false
@@ -77,13 +77,13 @@ func checkSoutheastDiagonalWin(row int, column int, board [7][7]int) bool {
 	return true
 }
 
-func checkSouthwestDiagonalWin(row int, column int, board [7][7]int) bool {
+func checkSouthwestDiagonalWin(row int, column int, board [6][7]int) bool {
 	initColor := board[row][column]
 	if initColor == 0 {
 		return false
 	}
 	for i := 0; i < 4; i++ {
-		if board[row-i][column+i] != initColor {
+		if board[row+i][column-i] != initColor {
 			return false
 		}
 	}
@@ -93,24 +93,27 @@ func checkSouthwestDiagonalWin(row int, column int, board [7][7]int) bool {
 // Checks if a connect four exists
 // I'm sure there's some more efficient way to conduct these checks, but at
 // modern computer speeds, it really doesn't matter
-func GameOver(board [7][7]int) bool {
-	for i := 0; i < 7; i++ {
-		if checkVerticalWin(i, board) {
-			return true
-		}
-		if checkHorizontalWin(i, board) {
+func GameOver(board [6][7]int) bool {
+	for column := 0; column < 7; column++ {
+		if checkVerticalWin(column, board) {
 			return true
 		}
 	}
-	for row := 0; row < 4; row++ {
+
+	for row := 0; row < 6; row++ {
+		if checkHorizontalWin(row, board) {
+			return true
+		}
+	}
+	for row := 0; row < 3; row++ {
 		for column := 0; column < 4; column++ {
 			if checkSoutheastDiagonalWin(row, column, board) {
 				return true
 			}
 		}
 	}
-	for row := 3; row < 7; row++ {
-		for column := 0; column < 4; column++ {
+	for column := 3; column < 7; column++ {
+		for row := 0; row < 3; row++ {
 			if checkSouthwestDiagonalWin(row, column, board) {
 				return true
 			}
@@ -119,7 +122,7 @@ func GameOver(board [7][7]int) bool {
 	return false
 }
 
-func IsBoardFull(board [7][7]int) bool {
+func IsBoardFull(board [6][7]int) bool {
 	// will check the top row, which is always the last to fill up.
 	for column := 0; column < 7; column++ {
 		if board[0][column] == 0 {
@@ -130,15 +133,21 @@ func IsBoardFull(board [7][7]int) bool {
 }
 
 // Returns error if the move is invalid
-func ApplyMoveToBoard(move int, playerId int, bp *[7][7]int) (*[7][7]int, error) {
+func ApplyMoveToBoard(move int, playerId int, bp *[6][7]int) (*[6][7]int, error) {
 	if move >= 7 || move < 0 {
 		return bp, errors.New(fmt.Sprintf("Move %d is invalid", move))
 	}
-	for i := 6; i >= 0; i-- {
+	for i := 5; i >= 0; i-- {
 		if bp[i][move] == 0 {
 			bp[i][move] = playerId
 			return bp, nil
 		}
 	}
 	return bp, errors.New(fmt.Sprintf("No room in column %d for a move", move))
+}
+
+func InitializeBoard() *[6][7]int {
+	// Board is initialized to be filled with zeros.
+	var board [6][7]int
+	return &board
 }
