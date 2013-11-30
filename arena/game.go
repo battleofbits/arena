@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/lib/pq"
 	"io/ioutil"
@@ -93,6 +94,7 @@ func DoForfeit(loser *Player, reason error) {
 }
 
 func DoGameOver(match *FourUpMatch, winner *Player, loser *Player) {
+	fmt.Println("Game is over. Winner is ", winner.Username, ". Notifying winner and loser...")
 	MarkWinner(match, winner)
 	NotifyWinner(winner)
 	NotifyLoser(loser)
@@ -102,28 +104,10 @@ func getHref(id int64) string {
 	return fmt.Sprintf("https://battleofbits.com/games/four-up/matches/%d", id)
 }
 
-func getBoard(board *[NumRows][NumColumns]int) [NumRows][NumColumns]string {
-	var stringBoard [NumRows][NumColumns]string
-	for row := 0; row < NumRows; row++ {
-		for column := 0; column < NumColumns; column++ {
-			if board[row][column] == Empty {
-				stringBoard[row][column] = ""
-			} else if board[row][column] == Red {
-				stringBoard[row][column] = "R"
-			} else if board[row][column] == Black {
-				stringBoard[row][column] = "B"
-			} else {
-				panic(fmt.Sprintf("invalid value", board[row][column], "for a board"))
-			}
-		}
-	}
-	return stringBoard
-}
-
 func serializeTurn(match *FourUpMatch) *FourUpTurn {
 	return &FourUpTurn{
 		Href:  getHref(match.Id),
-		Board: getBoard(match.Board),
+		Board: GetStringBoard(match.Board),
 	}
 }
 
@@ -182,7 +166,7 @@ func DoPlayerMove(player *Player, otherPlayer *Player, match *FourUpMatch, playe
 	}
 	if GameOver(*match.Board) {
 		DoGameOver(match, player, otherPlayer)
-		return err
+		return errors.New("Game is over.")
 	}
 	if IsBoardFull(*match.Board) {
 		DoTieGame(match, player, otherPlayer)
@@ -192,7 +176,7 @@ func DoPlayerMove(player *Player, otherPlayer *Player, match *FourUpMatch, playe
 }
 
 func DoTieGame(match *FourUpMatch, playerOne *Player, playerTwo *Player) {
-
+	fmt.Println("Board is full.")
 }
 
 func DoMatch(match *FourUpMatch, redPlayer *Player, blackPlayer *Player) *FourUpMatch {
