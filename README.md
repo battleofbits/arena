@@ -1,7 +1,7 @@
 # Battle of Bits
 
 Battle of Bits is a hosted service for competitive board game AI programs. We
-host daily tournaments and continual round robin matches with your robot.
+host daily tournaments and continual round-robin matches with your robot.
 
 ## How it Works
 
