@@ -1,4 +1,4 @@
-package main
+package arena
 
 import (
 	"bytes"
@@ -206,14 +206,4 @@ func DoMatch(match *FourUpMatch, redPlayer *Player, blackPlayer *Player) *FourUp
 		}
 	}
 	return match
-}
-
-func main() {
-	redPlayer, _ := CreatePlayer("Kevin Burke", "kevinburke", URL)
-	blackPlayer, _ := CreatePlayer("Kyle Conroy", "kyleconroy", URL)
-	match, fourupErr := CreateFourUpMatch(redPlayer, blackPlayer)
-	checkError(fourupErr)
-	match = DoMatch(match, redPlayer, blackPlayer)
-	fmt.Println(match.Board)
-	fmt.Println("done")
 }

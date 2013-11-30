@@ -1,7 +1,5 @@
 .PHONY: database arena
 
-export GOPATH:=$(shell pwd)
-
 DATABASE=arena
 USER=postgres_arena
 
@@ -18,5 +16,8 @@ clean:
 	psql -f schemas/reset.sql -d $(DATABASE) -U $(USER) || true
 	psql -f schemas/reset_database.sql || true
 
-arena:
-	go install arena
+format:
+	go fmt ./...
+
+test: format
+	go test ./...
