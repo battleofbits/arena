@@ -5,20 +5,9 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/lib/pq"
 	"io/ioutil"
 	"net/http"
 )
-
-type Player struct {
-	// The autoid for the player
-	Id int64
-	// The player's unique Id
-	Name string
-	// The player's friendly name
-	Username string
-	Url      string
-}
 
 type FourUpMatch struct {
 	Id            int64
@@ -50,38 +39,6 @@ const Empty = 0
 const Red = 1
 const Black = 2
 
-func CreatePlayer(username string, name string, url string) (*Player, error) {
-	db := getConnection()
-	defer db.Close()
-	player := &Player{
-		Username: username,
-		Name:     name,
-		Url:      url,
-	}
-	err := db.QueryRow("INSERT INTO players (username, name, url) VALUES ($1, $2, $3) RETURNING id", username, name, url).Scan(&player.Id)
-	var pqerr *pq.Error
-	if err != nil {
-		pqerr = err.(*pq.Error)
-	}
-	if pqerr != nil && pqerr.Code.Name() == "unique_violation" {
-		return &Player{}, pqerr
-	}
-	checkError(err)
-	return player, nil
-}
-
-func GetPlayerByName(name string) (*Player, error) {
-	var p Player
-	db := getConnection()
-	defer db.Close()
-	err := db.QueryRow("SELECT * FROM players WHERE name = $1", name).Scan(&p.Id, &p.Username, &p.Name, &p.Url)
-	if err != nil {
-		return &Player{}, err
-	} else {
-		return &p, nil
-	}
-}
-
 func CreateFourUpMatch(redPlayer *Player, blackPlayer *Player) (*FourUpMatch, error) {
 	board := InitializeBoard()
 	match := &FourUpMatch{
@@ -91,11 +48,18 @@ func CreateFourUpMatch(redPlayer *Player, blackPlayer *Player) (*FourUpMatch, er
 	}
 	db := getConnection()
 	defer db.Close()
-	err := db.QueryRow("INSERT INTO fourup_matches "+
-		"(player_red, player_black, started) VALUES "+
-		"($1, $2, NOW() at time zone 'utc') RETURNING id",
+	query := "INSERT INTO fourup_matches " +
+		"(player_red, player_black, started) VALUES " +
+		"($1, $2, NOW() at time zone 'utc') RETURNING id"
+	fmt.Println(query)
+	fmt.Println(redPlayer.Id)
+	fmt.Println(blackPlayer.Id)
+	err := db.QueryRow(query,
 		redPlayer.Id, blackPlayer.Id).Scan(&match.Id)
-	checkError(err)
+	if err != nil {
+		return nil, err
+	}
+	fmt.Println("after query")
 	return match, nil
 }
 
@@ -110,13 +74,13 @@ func DoGameOver(match *FourUpMatch, winner *Player, loser *Player) {
 	NotifyLoser(loser)
 }
 
-func getHref(id int64) string {
-	return fmt.Sprintf("https://battleofbits.com/games/four-up/matches/%d", id)
+func getMatchHref(matchId int64) string {
+	return fmt.Sprintf("https://battleofbits.com/games/four-up/matches/%d", matchId)
 }
 
 func serializeTurn(match *FourUpMatch) *FourUpTurn {
 	return &FourUpTurn{
-		Href:  getHref(match.Id),
+		Href:  getMatchHref(match.Id),
 		Board: GetStringBoard(match.Board),
 	}
 }
