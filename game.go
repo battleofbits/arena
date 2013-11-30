@@ -59,14 +59,6 @@ func serializeTurn(match *FourUpMatch) *FourUpTurn {
 	}
 }
 
-func WriteMatch(match *FourUpMatch) error {
-	db := getConnection()
-	defer db.Close()
-	query := "INSERT INTO fourup_matches (player_red, player_black, started) " +
-		"VALUES ($1, $2, NOW() at time zone 'utc') RETURNING id"
-	return db.QueryRow(query, match.RedPlayer.Id, match.BlackPlayer.Id).Scan(&match.Id)
-}
-
 func CreateFourUpMatch(redPlayer *Player, blackPlayer *Player) *FourUpMatch {
 	board := InitializeBoard()
 	match := &FourUpMatch{
@@ -77,6 +69,20 @@ func CreateFourUpMatch(redPlayer *Player, blackPlayer *Player) *FourUpMatch {
 		CurrentPlayer: redPlayer,
 	}
 	return match
+}
+
+func WriteMatch(match *FourUpMatch) error {
+	db := getConnection()
+	defer db.Close()
+	stringBoard := GetStringBoard(match.Board)
+	jsonBoard, err := json.Marshal(stringBoard)
+	if err != nil {
+		return err
+	}
+	query := "INSERT INTO fourup_matches " +
+		"(player_red, player_black, board, started) VALUES " +
+		"($1, $2, $3, NOW() at time zone 'utc') RETURNING id"
+	return db.QueryRow(query, match.RedPlayer.Id, match.BlackPlayer.Id, string(jsonBoard)).Scan(&match.Id)
 }
 
 func DoForfeit(loser *Player, reason error) {
@@ -94,32 +100,41 @@ func getMatchHref(matchId int64) string {
 	return fmt.Sprintf(BaseUri+"/games/four-up/matches/%d", matchId)
 }
 
-func GetMove(player *Player, match *FourUpMatch) (int, error) {
+// Assemble and make an HTTP request to the user's URL
+// Returns the column of the response
+func GetMove(match *FourUpMatch) (int, error) {
 	turn := serializeTurn(match)
 	postBody, err := json.Marshal(turn)
 	checkError(err)
-	req, err := http.NewRequest("POST", player.Url, bytes.NewReader(postBody))
+	httpResponse, err := MakeRequest(match.CurrentPlayer.Url, postBody)
+	return ParseResponse(httpResponse)
+}
+
+func MakeRequest(url string, postBody []byte) (*http.Response, error) {
+	req, err := http.NewRequest("POST", url, bytes.NewReader(postBody))
 	if err != nil {
-		return -1, err
+		return nil, err
 	}
 	client := &http.Client{}
 	req.Header.Add("Content-Type", "application/json")
 	req.Header.Add("User-Agent", "battleofbits/0.1")
-	httpResponse, err := client.Do(req)
+	// XXX, set a timeout here
+	return client.Do(req)
+}
+
+// Retrieves the column from the http response
+func ParseResponse(response *http.Response) (int, error) {
+	defer response.Body.Close()
+	body, err := ioutil.ReadAll(response.Body)
 	if err != nil {
 		return -1, err
 	}
-	defer httpResponse.Body.Close()
-	body, err := ioutil.ReadAll(httpResponse.Body)
+	var fourUpResponse FourUpResponse
+	err = json.Unmarshal(body, &fourUpResponse)
 	if err != nil {
 		return -1, err
 	}
-	var response FourUpResponse
-	err = json.Unmarshal(body, &response)
-	if err != nil {
-		return -1, err
-	}
-	return response.Column, nil
+	return fourUpResponse.Column, nil
 }
 
 func NotifyWinner(winner *Player) {
@@ -140,7 +155,7 @@ func MarkWinner(match *FourUpMatch, winner *Player) error {
 }
 
 func DoPlayerMove(player *Player, otherPlayer *Player, match *FourUpMatch, playerId int) error {
-	move, err := GetMove(player, match)
+	move, err := GetMove(match)
 	if err != nil {
 		DoForfeit(player, err)
 		DoGameOver(match, otherPlayer, player)
