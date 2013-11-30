@@ -5,19 +5,24 @@ import (
 	"fmt"
 )
 
+const NumRows = 6
+const NumColumns = 7
+const NumConsecutive = 4
+const EmptySpace = 0
+
 // Checks fourup board state
 // Author: Kevin Burke <kev@inburke.com>
 
 // row varies, column does not.
-func checkVerticalWin(column int, board [6][7]int) bool {
-	checkRowInColumn := func(column int, row int, board [6][7]int) bool {
+func checkVerticalWin(column int, board [NumRows][NumColumns]int) bool {
+	checkRowInColumn := func(column int, row int, board [NumRows][NumColumns]int) bool {
 		initColor := board[row][column]
-		for k := 0; k < 4; k++ {
-			if row+k >= 7 {
+		for k := 0; k < NumConsecutive; k++ {
+			if row+k >= NumColumns {
 				return false
 			}
 			value := board[row+k][column]
-			if value == 0 || value != initColor {
+			if value == EmptySpace || value != initColor {
 				return false
 			}
 		}
@@ -25,9 +30,9 @@ func checkVerticalWin(column int, board [6][7]int) bool {
 		return true
 	}
 
-	for row := 0; row < 4; row++ {
+	for row := 0; row < NumConsecutive; row++ {
 		initColor := board[row][column]
-		if initColor == 0 {
+		if initColor == EmptySpace {
 			continue
 		}
 		if checkRowInColumn(column, row, board) {
@@ -37,11 +42,11 @@ func checkVerticalWin(column int, board [6][7]int) bool {
 	return false
 }
 
-func checkHorizontalWin(row int, board [6][7]int) bool {
-	checkColumnInRow := func(row int, column int, board [6][7]int) bool {
+func checkHorizontalWin(row int, board [NumRows][NumColumns]int) bool {
+	checkColumnInRow := func(row int, column int, board [NumRows][NumColumns]int) bool {
 		initColor := board[row][column]
-		for k := 0; k < 4; k++ {
-			if column+k >= 7 {
+		for k := 0; k < NumConsecutive; k++ {
+			if column+k >= NumColumns {
 				return false
 			}
 			if board[row][column+k] != initColor {
@@ -51,9 +56,9 @@ func checkHorizontalWin(row int, board [6][7]int) bool {
 		// if we get here and haven't broken, seen 4 in a row of the same color
 		return true
 	}
-	for column := 0; column < 4; column++ {
+	for column := 0; column < NumConsecutive; column++ {
 		initColor := board[row][column]
-		if initColor == 0 {
+		if initColor == EmptySpace {
 			continue
 		}
 		if checkColumnInRow(row, column, board) {
@@ -64,12 +69,12 @@ func checkHorizontalWin(row int, board [6][7]int) bool {
 }
 
 // check squares down and to the right for a match
-func checkSoutheastDiagonalWin(row int, column int, board [6][7]int) bool {
+func checkSoutheastDiagonalWin(row int, column int, board [NumRows][NumColumns]int) bool {
 	initColor := board[row][column]
-	if initColor == 0 {
+	if initColor == EmptySpace {
 		return false
 	}
-	for i := 0; i < 4; i++ {
+	for i := 0; i < NumConsecutive; i++ {
 		if board[row+i][column+i] != initColor {
 			return false
 		}
@@ -77,12 +82,12 @@ func checkSoutheastDiagonalWin(row int, column int, board [6][7]int) bool {
 	return true
 }
 
-func checkSouthwestDiagonalWin(row int, column int, board [6][7]int) bool {
+func checkSouthwestDiagonalWin(row int, column int, board [NumRows][NumColumns]int) bool {
 	initColor := board[row][column]
-	if initColor == 0 {
+	if initColor == EmptySpace {
 		return false
 	}
-	for i := 0; i < 4; i++ {
+	for i := 0; i < NumConsecutive; i++ {
 		if board[row+i][column-i] != initColor {
 			return false
 		}
@@ -93,27 +98,27 @@ func checkSouthwestDiagonalWin(row int, column int, board [6][7]int) bool {
 // Checks if a connect four exists
 // I'm sure there's some more efficient way to conduct these checks, but at
 // modern computer speeds, it really doesn't matter
-func GameOver(board [6][7]int) bool {
-	for column := 0; column < 7; column++ {
+func GameOver(board [NumRows][NumColumns]int) bool {
+	for column := 0; column < NumColumns; column++ {
 		if checkVerticalWin(column, board) {
 			return true
 		}
 	}
 
-	for row := 0; row < 6; row++ {
+	for row := 0; row < NumRows; row++ {
 		if checkHorizontalWin(row, board) {
 			return true
 		}
 	}
-	for row := 0; row < 3; row++ {
-		for column := 0; column < 4; column++ {
+	for row := 0; row <= (NumRows - NumConsecutive); row++ {
+		for column := 0; column <= (NumColumns - NumConsecutive); column++ {
 			if checkSoutheastDiagonalWin(row, column, board) {
 				return true
 			}
 		}
 	}
-	for column := 3; column < 7; column++ {
-		for row := 0; row < 3; row++ {
+	for column := (NumColumns - NumConsecutive); column < NumColumns; column++ {
+		for row := 0; row <= (NumRows - NumConsecutive); row++ {
 			if checkSouthwestDiagonalWin(row, column, board) {
 				return true
 			}
@@ -122,10 +127,10 @@ func GameOver(board [6][7]int) bool {
 	return false
 }
 
-func IsBoardFull(board [6][7]int) bool {
+func IsBoardFull(board [NumRows][NumColumns]int) bool {
 	// will check the top row, which is always the last to fill up.
-	for column := 0; column < 7; column++ {
-		if board[0][column] == 0 {
+	for column := 0; column < NumColumns; column++ {
+		if board[0][column] == EmptySpace {
 			return false
 		}
 	}
@@ -133,11 +138,11 @@ func IsBoardFull(board [6][7]int) bool {
 }
 
 // Returns error if the move is invalid
-func ApplyMoveToBoard(move int, playerId int, bp *[6][7]int) (*[6][7]int, error) {
-	if move >= 7 || move < 0 {
+func ApplyMoveToBoard(move int, playerId int, bp *[NumRows][NumColumns]int) (*[NumRows][NumColumns]int, error) {
+	if move >= NumColumns || move < 0 {
 		return bp, errors.New(fmt.Sprintf("Move %d is invalid", move))
 	}
-	for i := 5; i >= 0; i-- {
+	for i := NumRows - 1; i >= 0; i-- {
 		if bp[i][move] == 0 {
 			bp[i][move] = playerId
 			return bp, nil
@@ -146,8 +151,8 @@ func ApplyMoveToBoard(move int, playerId int, bp *[6][7]int) (*[6][7]int, error)
 	return bp, errors.New(fmt.Sprintf("No room in column %d for a move", move))
 }
 
-func InitializeBoard() *[6][7]int {
+func InitializeBoard() *[NumRows][NumColumns]int {
 	// Board is initialized to be filled with zeros.
-	var board [6][7]int
+	var board [NumRows][NumColumns]int
 	return &board
 }
