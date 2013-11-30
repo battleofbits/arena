@@ -1,4 +1,4 @@
 language: go
 go: tip
 script: go test github.com/kevinburke/arena/arena
-install: go install github.com/kevinburke/arena/arena
+install: go get github.com/kevinburke/arena/arena
