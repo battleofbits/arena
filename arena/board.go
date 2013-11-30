@@ -8,7 +8,6 @@ import (
 const NumRows = 6
 const NumColumns = 7
 const NumConsecutive = 4
-const EmptySpace = 0
 
 // Checks fourup board state
 // Author: Kevin Burke <kev@inburke.com>
@@ -22,7 +21,7 @@ func checkVerticalWin(column int, board [NumRows][NumColumns]int) bool {
 				return false
 			}
 			value := board[row+k][column]
-			if value == EmptySpace || value != initColor {
+			if value == Empty || value != initColor {
 				return false
 			}
 		}
@@ -32,7 +31,7 @@ func checkVerticalWin(column int, board [NumRows][NumColumns]int) bool {
 
 	for row := 0; row <= (NumRows - NumConsecutive); row++ {
 		initColor := board[row][column]
-		if initColor == EmptySpace {
+		if initColor == Empty {
 			continue
 		}
 		if checkRowInColumn(column, row, board) {
@@ -58,7 +57,7 @@ func checkHorizontalWin(row int, board [NumRows][NumColumns]int) bool {
 	}
 	for column := 0; column < NumConsecutive; column++ {
 		initColor := board[row][column]
-		if initColor == EmptySpace {
+		if initColor == Empty {
 			continue
 		}
 		if checkColumnInRow(row, column, board) {
@@ -71,7 +70,7 @@ func checkHorizontalWin(row int, board [NumRows][NumColumns]int) bool {
 // check squares down and to the right for a match
 func checkSoutheastDiagonalWin(row int, column int, board [NumRows][NumColumns]int) bool {
 	initColor := board[row][column]
-	if initColor == EmptySpace {
+	if initColor == Empty {
 		return false
 	}
 	for i := 0; i < NumConsecutive; i++ {
@@ -84,7 +83,7 @@ func checkSoutheastDiagonalWin(row int, column int, board [NumRows][NumColumns]i
 
 func checkSouthwestDiagonalWin(row int, column int, board [NumRows][NumColumns]int) bool {
 	initColor := board[row][column]
-	if initColor == EmptySpace {
+	if initColor == Empty {
 		return false
 	}
 	for i := 0; i < NumConsecutive; i++ {
@@ -127,10 +126,27 @@ func GameOver(board [NumRows][NumColumns]int) bool {
 	return false
 }
 
+func GetStringBoard(board *[NumRows][NumColumns]int) [NumRows][NumColumns]string {
+	var stringBoard [NumRows][NumColumns]string
+	for row := 0; row < NumRows; row++ {
+		for column := 0; column < NumColumns; column++ {
+			if board[row][column] == Empty {
+				stringBoard[row][column] = ""
+			} else if board[row][column] == Red {
+				stringBoard[row][column] = "R"
+			} else if board[row][column] == Black {
+				stringBoard[row][column] = "B"
+			} else {
+				panic(fmt.Sprintf("invalid value", board[row][column], "for a board"))
+			}
+		}
+	}
+	return stringBoard
+}
 func IsBoardFull(board [NumRows][NumColumns]int) bool {
 	// will check the top row, which is always the last to fill up.
 	for column := 0; column < NumColumns; column++ {
-		if board[0][column] == EmptySpace {
+		if board[0][column] == Empty {
 			return false
 		}
 	}

@@ -9,21 +9,6 @@ import (
 	"net/http"
 )
 
-func CreatePlayer(username string, name string, url string) (*Player, error) {
-	db := getConnection()
-	_, err := db.Exec("INSERT INTO players (username, name, url) VALUES ($1, $2, $3) RETURNING id", username, name, url)
-	var pqerr *pq.Error
-	if err != nil {
-		pqerr = err.(*pq.Error)
-	}
-	if pqerr != nil && pqerr.Code.Name() == "unique_violation" {
-		return &Player{}, pqerr
-	}
-	checkError(err)
-	// XXX
-	return GetPlayerByName(name)
-}
-
 type Player struct {
 	// The autoid for the player
 	Id int64
@@ -56,6 +41,27 @@ type FourUpTurn struct {
 
 type FourUpResponse struct {
 	Column int `json:"column"`
+}
+
+const URL = "http://localhost:5000/fourup"
+
+const Empty = 0
+const Red = 1
+const Black = 2
+
+func CreatePlayer(username string, name string, url string) (*Player, error) {
+	db := getConnection()
+	_, err := db.Exec("INSERT INTO players (username, name, url) VALUES ($1, $2, $3) RETURNING id", username, name, url)
+	var pqerr *pq.Error
+	if err != nil {
+		pqerr = err.(*pq.Error)
+	}
+	if pqerr != nil && pqerr.Code.Name() == "unique_violation" {
+		return &Player{}, pqerr
+	}
+	checkError(err)
+	// XXX
+	return GetPlayerByName(name)
 }
 
 func GetPlayerByName(name string) (*Player, error) {
@@ -96,10 +102,28 @@ func getHref(id int64) string {
 	return fmt.Sprintf("https://battleofbits.com/games/four-up/matches/%d", id)
 }
 
+func getBoard(board *[NumRows][NumColumns]int) [NumRows][NumColumns]string {
+	var stringBoard [NumRows][NumColumns]string
+	for row := 0; row < NumRows; row++ {
+		for column := 0; column < NumColumns; column++ {
+			if board[row][column] == Empty {
+				stringBoard[row][column] = ""
+			} else if board[row][column] == Red {
+				stringBoard[row][column] = "R"
+			} else if board[row][column] == Black {
+				stringBoard[row][column] = "B"
+			} else {
+				panic(fmt.Sprintf("invalid value", board[row][column], "for a board"))
+			}
+		}
+	}
+	return stringBoard
+}
+
 func serializeTurn(match *FourUpMatch) *FourUpTurn {
 	return &FourUpTurn{
 		Href:  getHref(match.Id),
-		Board: match.Board,
+		Board: getBoard(match.Board),
 	}
 }
 
@@ -184,8 +208,6 @@ func DoMatch(match *FourUpMatch, redPlayer *Player, blackPlayer *Player) *FourUp
 	}
 	return match
 }
-
-const URL = "http://localhost:5000/fourup"
 
 func main() {
 	redPlayer, _ := CreatePlayer("Kevin Burke", "kevinburke", URL)

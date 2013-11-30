@@ -165,3 +165,26 @@ func TestApplyMoveToBoard(t *testing.T) {
 		t.Errorf("Should have rejected positive move, did not, error was %s", err.Error())
 	}
 }
+
+func TestStringBoard(t *testing.T) {
+	fullBoard := [NumRows][NumColumns]int{
+		[7]int{1, 2, 1, 2, 0, 0, 0},
+		[7]int{2, 2, 2, 2, 2, 2, 2},
+		[7]int{1, 2, 2, 2, 2, 2, 2},
+		[7]int{1, 2, 2, 2, 2, 2, 2},
+		[7]int{1, 2, 2, 2, 2, 2, 2},
+		[7]int{1, 2, 2, 2, 2, 2, 2},
+	}
+	expectedBoard := [NumRows][NumColumns]string{
+		[7]string{"R", "B", "R", "B", "", "", ""},
+		[7]string{"B", "B", "B", "B", "B", "B", "B"},
+		[7]string{"R", "B", "B", "B", "B", "B", "B"},
+		[7]string{"R", "B", "B", "B", "B", "B", "B"},
+		[7]string{"R", "B", "B", "B", "B", "B", "B"},
+		[7]string{"R", "B", "B", "B", "B", "B", "B"},
+	}
+	stringBoard := GetStringBoard(&fullBoard)
+	if stringBoard != expectedBoard {
+		t.Errorf("Output board", stringBoard, "didn't match expected board")
+	}
+}
