@@ -5,8 +5,8 @@ USER=postgres_arena
 
 database:
 	# this top one must run as default user to grant permissions
-	psql -f schemas/user.sql  -U postgres
-	psql -l | grep $(DATABASE) || psql -f schemas/database.sql --echo-all
+	psql -f schemas/user.sql -U postgres
+	psql -l | grep $(DATABASE) || psql -f schemas/database.sql --echo-all -U postgres
 	psql -f schemas/players.sql -d $(DATABASE) --username=$(USER) --echo-all
 	psql -f schemas/games.sql -d $(DATABASE) -U $(USER)
 	psql -f schemas/fourup_matches.sql -d $(DATABASE) -U $(USER)
