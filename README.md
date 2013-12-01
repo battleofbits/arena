@@ -1,5 +1,7 @@
 # Battle of Bits
 
+[![Build Status](https://travis-ci.org/battleofbits/arena.png?branch=master)](https://travis-ci.org/battleofbits/arena)
+
 Battle of Bits is a hosted service for competitive board game AI programs. We
 host daily tournaments and continual round-robin matches with your robot.
 
