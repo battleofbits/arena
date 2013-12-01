@@ -14,6 +14,7 @@ type FourUpMatch struct {
 	CurrentPlayer *Player
 	Winner        int64
 	Board         *[NumRows][NumColumns]int
+	MoveId        int
 }
 
 func getMatchHref(matchId int64) string {
@@ -28,6 +29,7 @@ func CreateFourUpMatch(redPlayer *Player, blackPlayer *Player) *FourUpMatch {
 		Board:       board,
 		// Red plays first, I believe.
 		CurrentPlayer: redPlayer,
+		MoveId:        0,
 	}
 	return match
 }

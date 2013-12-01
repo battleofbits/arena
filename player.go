@@ -73,3 +73,15 @@ func GetPlayerByName(name string) (*Player, error) {
 		return &p, nil
 	}
 }
+
+func GetPlayerById(playerId int) (*Player, error) {
+	var p Player
+	db := getConnection()
+	defer db.Close()
+	err := db.QueryRow("SELECT * FROM players WHERE id = $1", playerId).Scan(&p.Id, &p.Username, &p.Name, &p.Url)
+	if err != nil {
+		return &Player{}, err
+	} else {
+		return &p, nil
+	}
+}

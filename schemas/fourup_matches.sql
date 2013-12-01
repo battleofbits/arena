@@ -1,5 +1,5 @@
 CREATE TABLE fourup_matches (
-    id serial,
+    id serial primary key,
     player_red int references players(id),
     player_black int references players(id),
     winner int references players(id),

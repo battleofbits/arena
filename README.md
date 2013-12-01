@@ -56,6 +56,9 @@ Content-Type: application/json
 A valid response is a JSON move.
 
 ```js
+HTTP/1.0 200 OK
+Content-Type: application/json
+
 {
   "column": 2
 }

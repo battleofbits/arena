@@ -101,6 +101,45 @@ func MarkWinner(match *FourUpMatch, winner *Player) error {
 	return err
 }
 
+// Write a new move to the database
+func WriteMove(move int, match *FourUpMatch) (int64, error) {
+	db := getConnection()
+	defer db.Close()
+	query := "INSERT INTO fourup_moves (fourup_column, player, move_number, match_id, played)" +
+		"VALUES ($1, $2, $3, $4, NOW() at time zone 'utc') RETURNING id"
+	var moveId int64
+	err := db.QueryRow(query, move, match.CurrentPlayer.Id, match.MoveId, match.Id).Scan(&moveId)
+	return moveId, err
+}
+
+// Do a whole bunch of stuff associated with new moves
+// Error handling is a little tricky because most of the errors would be
+// database or other errors.
+func DoNewMove(move int, match *FourUpMatch) error {
+	var err error
+	match.Board, err = ApplyMoveToBoard(move, int(match.CurrentPlayer.Id), match.Board)
+	// XXX
+	//if err != nil {
+	//DoForfeit(player, err)
+	//DoGameOver(match, otherPlayer, player)
+	//return err
+	//}
+	// once we know move was valid, update the database
+	_, err = WriteMove(move, match)
+	checkError(err)
+	match.MoveId++
+	err = UpdateMatch(match)
+	checkError(err)
+	NotifySubscribers(move, match)
+	return nil
+}
+
+// In the background, let people know about the new move
+func NotifySubscribers(move int, match *FourUpMatch) {
+
+}
+
+// playerId - 1 for red, 2 for black. XXX, refactor this.
 func DoPlayerMove(player *Player, otherPlayer *Player, match *FourUpMatch, playerId int) error {
 	move, err := GetMove(match)
 	if err != nil {
@@ -108,12 +147,12 @@ func DoPlayerMove(player *Player, otherPlayer *Player, match *FourUpMatch, playe
 		DoGameOver(match, otherPlayer, player)
 		return err
 	}
-	match.Board, err = ApplyMoveToBoard(move, playerId, match.Board)
+	err = DoNewMove(move, match)
 	if err != nil {
-		DoForfeit(player, err)
-		DoGameOver(match, otherPlayer, player)
+		// XXX, do game over here, or switch based on the error type, etc.
 		return err
 	}
+	checkError(err)
 	if GameOver(*match.Board) {
 		DoGameOver(match, player, otherPlayer)
 		return errors.New("Game is over.")
@@ -134,7 +173,6 @@ func DoMatch(match *FourUpMatch, redPlayer *Player, blackPlayer *Player) *FourUp
 		match.CurrentPlayer = redPlayer
 		err := DoPlayerMove(redPlayer, blackPlayer, match, 1)
 		// XXX, evaluate positioning of this update.
-		UpdateMatch(match)
 		if err != nil {
 			break
 		}
@@ -142,7 +180,6 @@ func DoMatch(match *FourUpMatch, redPlayer *Player, blackPlayer *Player) *FourUp
 		match.CurrentPlayer = blackPlayer
 		err = DoPlayerMove(blackPlayer, redPlayer, match, 2)
 		// XXX, evaluate logic here
-		UpdateMatch(match)
 		if err != nil {
 			break
 		}
