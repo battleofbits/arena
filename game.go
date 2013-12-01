@@ -1,36 +1,29 @@
+// Contains the base logic for a game, integrates all of the models etc.
 package arena
 
 import (
-	"bytes"
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/lib/pq"
 	"io/ioutil"
 	"net/http"
 )
 
-type Player struct {
-	// The autoid for the player
-	Id int64
-	// The player's unique Id
-	Name string
-	// The player's friendly name
-	Username string
-	Url      string
-}
+const URL = "http://localhost:5000/fourup"
+const BaseUri = "https://battleofbits.com"
 
-type FourUpMatch struct {
-	Id            int64
-	RedPlayerId   int64
-	BlackPlayerId int64
-	Winner        int64
-	Board         *[NumRows][NumColumns]int
+const Empty = 0
+const Red = 1
+const Black = 2
+
+type TurnPlayers struct {
+	Red   string `json:"R"`
+	Black string `json:"B"`
 }
 
 type FourUpTurn struct {
 	Href     string                      `json:"href"`
-	Players  map[string]string           `json:"players"`
+	Players  *TurnPlayers                `json:"players"`
 	Turn     string                      `json:"turn"`
 	Loser    string                      `json:"loser"`
 	Winner   string                      `json:"winner"`
@@ -44,61 +37,17 @@ type FourUpResponse struct {
 	Column int `json:"column"`
 }
 
-const URL = "http://localhost:5000/fourup"
-
-const Empty = 0
-const Red = 1
-const Black = 2
-
-func CreatePlayer(username string, name string, url string) (*Player, error) {
-	db := getConnection()
-	defer db.Close()
-	player := &Player{
-		Username: username,
-		Name:     name,
-		Url:      url,
-	}
-	err := db.QueryRow("INSERT INTO players (username, name, url) VALUES ($1, $2, $3) RETURNING id", username, name, url).Scan(&player.Id)
-	var pqerr *pq.Error
-	if err != nil {
-		pqerr = err.(*pq.Error)
-	}
-	if pqerr != nil && pqerr.Code.Name() == "unique_violation" {
-		return &Player{}, pqerr
-	}
-	checkError(err)
-	return player, nil
-}
-
-func GetPlayerByName(name string) (*Player, error) {
-	var p Player
-	db := getConnection()
-	defer db.Close()
-	err := db.QueryRow("SELECT * FROM players WHERE name = $1", name).Scan(&p.Id, &p.Username, &p.Name, &p.Url)
-	if err != nil {
-		return &Player{}, err
-	} else {
-		return &p, nil
+func serializeTurn(match *FourUpMatch) *FourUpTurn {
+	return &FourUpTurn{
+		Href:  getMatchHref(match.Id),
+		Board: GetStringBoard(match.Board),
+		Turn:  fmt.Sprintf(BaseUri+"/players/%s", match.CurrentPlayer.Name),
+		Players: &TurnPlayers{
+			Red:   fmt.Sprintf(BaseUri+"/players/%s", match.RedPlayer.Name),
+			Black: fmt.Sprintf(BaseUri+"/players/%s", match.BlackPlayer.Name),
+		},
 	}
 }
-
-func CreateFourUpMatch(redPlayer *Player, blackPlayer *Player) (*FourUpMatch, error) {
-	board := InitializeBoard()
-	match := &FourUpMatch{
-		RedPlayerId:   redPlayer.Id,
-		BlackPlayerId: blackPlayer.Id,
-		Board:         board,
-	}
-	db := getConnection()
-	defer db.Close()
-	err := db.QueryRow("INSERT INTO fourup_matches "+
-		"(player_red, player_black, started) VALUES "+
-		"($1, $2, NOW() at time zone 'utc') RETURNING id",
-		redPlayer.Id, blackPlayer.Id).Scan(&match.Id)
-	checkError(err)
-	return match, nil
-}
-
 func DoForfeit(loser *Player, reason error) {
 	fmt.Println(fmt.Sprintf("player %s forfeits because of %s", loser.Username, reason.Error()))
 }
@@ -110,43 +59,29 @@ func DoGameOver(match *FourUpMatch, winner *Player, loser *Player) {
 	NotifyLoser(loser)
 }
 
-func getHref(id int64) string {
-	return fmt.Sprintf("https://battleofbits.com/games/four-up/matches/%d", id)
-}
-
-func serializeTurn(match *FourUpMatch) *FourUpTurn {
-	return &FourUpTurn{
-		Href:  getHref(match.Id),
-		Board: GetStringBoard(match.Board),
-	}
-}
-
-func GetMove(player *Player, match *FourUpMatch) (int, error) {
+// Assemble and make an HTTP request to the user's URL
+// Returns the column of the response
+func GetMove(match *FourUpMatch) (int, error) {
 	turn := serializeTurn(match)
 	postBody, err := json.Marshal(turn)
 	checkError(err)
-	req, err := http.NewRequest("POST", player.Url, bytes.NewReader(postBody))
+	httpResponse, err := MakeRequest(match.CurrentPlayer.Url, postBody)
+	return ParseResponse(httpResponse)
+}
+
+// Retrieves the column from the http response
+func ParseResponse(response *http.Response) (int, error) {
+	defer response.Body.Close()
+	body, err := ioutil.ReadAll(response.Body)
 	if err != nil {
 		return -1, err
 	}
-	client := &http.Client{}
-	req.Header.Add("Content-Type", "application/json")
-	req.Header.Add("User-Agent", "battleofbits/0.1")
-	httpResponse, err := client.Do(req)
+	var fourUpResponse FourUpResponse
+	err = json.Unmarshal(body, &fourUpResponse)
 	if err != nil {
 		return -1, err
 	}
-	defer httpResponse.Body.Close()
-	body, err := ioutil.ReadAll(httpResponse.Body)
-	if err != nil {
-		return -1, err
-	}
-	var response FourUpResponse
-	err = json.Unmarshal(body, &response)
-	if err != nil {
-		return -1, err
-	}
-	return response.Column, nil
+	return fourUpResponse.Column, nil
 }
 
 func NotifyWinner(winner *Player) {
@@ -166,19 +101,58 @@ func MarkWinner(match *FourUpMatch, winner *Player) error {
 	return err
 }
 
+// Write a new move to the database
+func WriteMove(move int, match *FourUpMatch) (int64, error) {
+	db := getConnection()
+	defer db.Close()
+	query := "INSERT INTO fourup_moves (fourup_column, player, move_number, match_id, played)" +
+		"VALUES ($1, $2, $3, $4, NOW() at time zone 'utc') RETURNING id"
+	var moveId int64
+	err := db.QueryRow(query, move, match.CurrentPlayer.Id, match.MoveId, match.Id).Scan(&moveId)
+	return moveId, err
+}
+
+// Do a whole bunch of stuff associated with new moves
+// Error handling is a little tricky because most of the errors would be
+// database or other errors.
+func DoNewMove(move int, match *FourUpMatch) error {
+	var err error
+	match.Board, err = ApplyMoveToBoard(move, int(match.CurrentPlayer.Id), match.Board)
+	// XXX
+	//if err != nil {
+	//DoForfeit(player, err)
+	//DoGameOver(match, otherPlayer, player)
+	//return err
+	//}
+	// once we know move was valid, update the database
+	_, err = WriteMove(move, match)
+	checkError(err)
+	match.MoveId++
+	err = UpdateMatch(match)
+	checkError(err)
+	NotifySubscribers(move, match)
+	return nil
+}
+
+// In the background, let people know about the new move
+func NotifySubscribers(move int, match *FourUpMatch) {
+
+}
+
+// playerId - 1 for red, 2 for black. XXX, refactor this.
 func DoPlayerMove(player *Player, otherPlayer *Player, match *FourUpMatch, playerId int) error {
-	move, err := GetMove(player, match)
+	move, err := GetMove(match)
 	if err != nil {
 		DoForfeit(player, err)
 		DoGameOver(match, otherPlayer, player)
 		return err
 	}
-	match.Board, err = ApplyMoveToBoard(move, playerId, match.Board)
+	err = DoNewMove(move, match)
 	if err != nil {
-		DoForfeit(player, err)
-		DoGameOver(match, otherPlayer, player)
+		// XXX, do game over here, or switch based on the error type, etc.
 		return err
 	}
+	checkError(err)
 	if GameOver(*match.Board) {
 		DoGameOver(match, player, otherPlayer)
 		return errors.New("Game is over.")
@@ -196,11 +170,16 @@ func DoTieGame(match *FourUpMatch, playerOne *Player, playerTwo *Player) {
 
 func DoMatch(match *FourUpMatch, redPlayer *Player, blackPlayer *Player) *FourUpMatch {
 	for {
+		match.CurrentPlayer = redPlayer
 		err := DoPlayerMove(redPlayer, blackPlayer, match, 1)
+		// XXX, evaluate positioning of this update.
 		if err != nil {
 			break
 		}
+
+		match.CurrentPlayer = blackPlayer
 		err = DoPlayerMove(blackPlayer, redPlayer, match, 2)
+		// XXX, evaluate logic here
 		if err != nil {
 			break
 		}
