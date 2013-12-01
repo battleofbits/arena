@@ -2,6 +2,7 @@ language: go
 go:
   - tip
 install:
-  go get -u github.com/lib/pq
+  make database clean
+  make deps
 script:
   go test ./...
