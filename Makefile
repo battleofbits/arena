@@ -14,7 +14,7 @@ database:
 
 clean:
 	psql -f schemas/reset.sql -d $(DATABASE) -U $(USER) || true
-	psql -f schemas/reset_database.sql || true
+	psql -f schemas/reset_database.sql -U postgres || true
 
 deps:
 	go get -d -v ./...
