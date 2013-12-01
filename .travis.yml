@@ -1,6 +1,6 @@
 language: go
 go:
-  - tip
+  - 1.1
 install:
   - make database clean
   - make deps
