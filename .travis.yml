@@ -2,7 +2,7 @@ language: go
 go:
   - tip
 install:
-  make database clean
-  make deps
+  - make database clean
+  - make deps
 script:
   go test ./...
