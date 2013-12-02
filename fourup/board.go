@@ -1,20 +1,24 @@
-package arena
+package fourup
 
 import (
 	"errors"
 	"fmt"
 )
 
+const Empty = 0
+const Red = 1
+const Black = 2
+
 const NumRows = 6
 const NumColumns = 7
 const NumConsecutive = 4
 
 // Checks fourup board state
-// Author: Kevin Burke <kev@inburke.com>
+type Board [NumRows][NumColumns]int
 
 // row varies, column does not.
-func checkVerticalWin(column int, board [NumRows][NumColumns]int) bool {
-	checkRowInColumn := func(column int, row int, board [NumRows][NumColumns]int) bool {
+func (board *Board) checkVerticalWin(column int) bool {
+	checkRowInColumn := func(column int, row int, board *Board) bool {
 		initColor := board[row][column]
 		for k := 0; k < NumConsecutive; k++ {
 			if row+k >= NumRows {
@@ -41,8 +45,8 @@ func checkVerticalWin(column int, board [NumRows][NumColumns]int) bool {
 	return false
 }
 
-func checkHorizontalWin(row int, board [NumRows][NumColumns]int) bool {
-	checkColumnInRow := func(row int, column int, board [NumRows][NumColumns]int) bool {
+func (board *Board) checkHorizontalWin(row int) bool {
+	checkColumnInRow := func(row int, column int, board *Board) bool {
 		initColor := board[row][column]
 		for k := 0; k < NumConsecutive; k++ {
 			if column+k >= NumColumns {
@@ -68,7 +72,7 @@ func checkHorizontalWin(row int, board [NumRows][NumColumns]int) bool {
 }
 
 // check squares down and to the right for a match
-func checkSoutheastDiagonalWin(row int, column int, board [NumRows][NumColumns]int) bool {
+func (board *Board) checkSoutheastDiagonalWin(row int, column int) bool {
 	initColor := board[row][column]
 	if initColor == Empty {
 		return false
@@ -81,7 +85,7 @@ func checkSoutheastDiagonalWin(row int, column int, board [NumRows][NumColumns]i
 	return true
 }
 
-func checkSouthwestDiagonalWin(row int, column int, board [NumRows][NumColumns]int) bool {
+func (board *Board) checkSouthwestDiagonalWin(row int, column int) bool {
 	initColor := board[row][column]
 	if initColor == Empty {
 		return false
@@ -97,28 +101,28 @@ func checkSouthwestDiagonalWin(row int, column int, board [NumRows][NumColumns]i
 // Checks if a connect four exists
 // I'm sure there's some more efficient way to conduct these checks, but at
 // modern computer speeds, it really doesn't matter
-func GameOver(board [NumRows][NumColumns]int) bool {
+func (board *Board) GameOver() bool {
 	for column := 0; column < NumColumns; column++ {
-		if checkVerticalWin(column, board) {
+		if board.checkVerticalWin(column) {
 			return true
 		}
 	}
 
 	for row := 0; row < NumRows; row++ {
-		if checkHorizontalWin(row, board) {
+		if board.checkHorizontalWin(row) {
 			return true
 		}
 	}
 	for row := 0; row <= (NumRows - NumConsecutive); row++ {
 		for column := 0; column <= (NumColumns - NumConsecutive); column++ {
-			if checkSoutheastDiagonalWin(row, column, board) {
+			if board.checkSoutheastDiagonalWin(row, column) {
 				return true
 			}
 		}
 	}
 	for column := (NumColumns - NumConsecutive); column < NumColumns; column++ {
 		for row := 0; row <= (NumRows - NumConsecutive); row++ {
-			if checkSouthwestDiagonalWin(row, column, board) {
+			if board.checkSouthwestDiagonalWin(row, column) {
 				return true
 			}
 		}
@@ -126,7 +130,7 @@ func GameOver(board [NumRows][NumColumns]int) bool {
 	return false
 }
 
-func GetStringBoard(board *[NumRows][NumColumns]int) [NumRows][NumColumns]string {
+func (board *Board) ToStringBoard() [NumRows][NumColumns]string {
 	var stringBoard [NumRows][NumColumns]string
 	for row := 0; row < NumRows; row++ {
 		for column := 0; column < NumColumns; column++ {
@@ -143,7 +147,7 @@ func GetStringBoard(board *[NumRows][NumColumns]int) [NumRows][NumColumns]string
 	}
 	return stringBoard
 }
-func IsBoardFull(board [NumRows][NumColumns]int) bool {
+func (board *Board) IsFull() bool {
 	// will check the top row, which is always the last to fill up.
 	for column := 0; column < NumColumns; column++ {
 		if board[0][column] == Empty {
@@ -154,21 +158,21 @@ func IsBoardFull(board [NumRows][NumColumns]int) bool {
 }
 
 // Returns error if the move is invalid
-func ApplyMoveToBoard(move int, playerId int, bp *[NumRows][NumColumns]int) (*[NumRows][NumColumns]int, error) {
+func (bp *Board) ApplyMove(move int, playerId int) error {
 	if move >= NumColumns || move < 0 {
-		return bp, errors.New(fmt.Sprintf("Move %d is invalid", move))
+		return errors.New(fmt.Sprintf("Move %d is invalid", move))
 	}
 	for i := NumRows - 1; i >= 0; i-- {
 		if bp[i][move] == 0 {
 			bp[i][move] = playerId
-			return bp, nil
+			return nil
 		}
 	}
-	return bp, errors.New(fmt.Sprintf("No room in column %d for a move", move))
+	return errors.New(fmt.Sprintf("No room in column %d for a move", move))
 }
 
-func InitializeBoard() *[NumRows][NumColumns]int {
+func NewBoard() *Board {
 	// Board is initialized to be filled with zeros.
-	var board [NumRows][NumColumns]int
+	var board Board
 	return &board
 }
