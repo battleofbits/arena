@@ -5,7 +5,7 @@ USER=postgres_arena
 DEFAULT_USER=""
 
 ifeq ($(TRAVIS), true)
-DEFAULT_USER="-U postgres"
+DEFAULT_USER=-U postgres
 endif
 
 database:
