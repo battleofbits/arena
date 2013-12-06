@@ -34,7 +34,6 @@ import (
 func TestHelloWorld(t *testing.T) {
 	testServer := httptest.NewServer(http.HandlerFunc(HelloWorldHandler))
 	defer testServer.Close()
-	fmt.Println(testServer.URL)
 	res, err := http.Get(testServer.URL)
 	if err != nil {
 		t.Fatalf(err.Error())

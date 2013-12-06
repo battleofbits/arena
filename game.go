@@ -101,6 +101,8 @@ func MarkWinner(match *FourUpMatch, winner *Player) error {
 	return err
 }
 
+var moveWriter = WriteMove
+
 // Write a new move to the database
 func WriteMove(move int, match *FourUpMatch) (int64, error) {
 	db := getConnection()
