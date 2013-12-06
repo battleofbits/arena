@@ -81,7 +81,7 @@ func TestMoves(t *testing.T) {
 	if endMove.Column != column {
 		t.Errorf("expected column to be %d, got %d", column, endMove.Column)
 	}
-	if endMove.Played != now {
+	if endMove.Played.Equal(now) {
 		t.Errorf("expected timestamp to be %s, got %s", now, endMove.Played)
 	}
 }
