@@ -2,6 +2,7 @@ package arena
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/gorilla/mux"
 	"io/ioutil"
 	"net/http"
@@ -81,7 +82,9 @@ func TestMoves(t *testing.T) {
 	if endMove.Column != column {
 		t.Errorf("expected column to be %d, got %d", column, endMove.Column)
 	}
-	if endMove.Played.Equal(now) {
+	// For some reason you can't compare the timestamps with Equal, it doesn't
+	// work. No idea why.
+	if endMove.Played.Unix() != now.Unix() {
 		t.Errorf("expected timestamp to be %s, got %s", now, endMove.Played)
 	}
 }
