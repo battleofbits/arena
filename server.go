@@ -14,7 +14,9 @@ var moveGetter = getMoves
 
 func players(ctx *web.Context) []byte {
 	ctx.SetHeader("Content-Type", "application/json", true)
-	jsonPlayers, err := json.Marshal(GetPlayers())
+	players, err := GetPlayers()
+	checkError(err)
+	jsonPlayers, err := json.Marshal(players)
 	checkError(err)
 	return jsonPlayers
 }
@@ -66,6 +68,13 @@ func MovesHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprint(w, Response{"moves": moves})
 }
 
+func PlayersHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	players, err := GetPlayers()
+	checkError(err)
+	fmt.Fprint(w, Response{"players": players})
+}
+
 type Response map[string]interface{}
 
 func (r Response) String() (s string) {
@@ -101,9 +110,10 @@ func moves(ctx *web.Context, matchId string) []byte {
 	return jsonMoves
 }
 
-func doServer() {
+func DoServer() *mux.Router {
 	r := mux.NewRouter()
-	web.Get("/players", players)
+	r.HandleFunc("/players", PlayersHandler)
 	r.HandleFunc("/games/four-up/matches/([^/]+)/moves", MovesHandler)
 	http.Handle("/", r)
+	return r
 }

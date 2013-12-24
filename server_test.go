@@ -2,7 +2,7 @@ package arena
 
 import (
 	"encoding/json"
-	"fmt"
+	//"fmt"
 	"github.com/gorilla/mux"
 	"io/ioutil"
 	"net/http"

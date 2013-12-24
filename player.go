@@ -27,19 +27,23 @@ func (p *Player) SetHref() {
 	p.Href = fmt.Sprintf("https://battleofbits.com/players/%s", p.Name)
 }
 
-func GetPlayers() []*Player {
+func GetPlayers() ([]*Player, error) {
 	db := getConnection()
 	rows, err := db.Query("SELECT username, name from players")
-	checkError(err)
+	if err != nil {
+		return nil, err
+	}
 	var players []*Player
 	for rows.Next() {
 		var p Player
 		err = rows.Scan(&p.Username, &p.Name)
-		checkError(err)
+		if err != nil {
+			return nil, err
+		}
 		p.SetHref()
 		players = append(players, &p)
 	}
-	return players
+	return players, nil
 }
 
 func CreatePlayer(username string, name string, url string) (*Player, error) {
