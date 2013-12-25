@@ -2,9 +2,7 @@ package main
 
 import (
 	"encoding/json"
-	//"fmt"
 	"github.com/gorilla/mux"
-	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -29,21 +27,6 @@ import (
 //func teardown() {
 //server.Close()
 //}
-
-// just testing the infrastructure
-func TestHelloWorld(t *testing.T) {
-	testServer := httptest.NewServer(http.HandlerFunc(HelloWorldHandler))
-	defer testServer.Close()
-	res, err := http.Get(testServer.URL)
-	if err != nil {
-		t.Fatalf(err.Error())
-	}
-	defer res.Body.Close()
-	body, err := ioutil.ReadAll(res.Body)
-	if string(body) != "Hello World" {
-		t.Errorf("Expected 'Hello World' but got %s", string(body))
-	}
-}
 
 func TestMoves(t *testing.T) {
 	r := mux.NewRouter()

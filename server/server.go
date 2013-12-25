@@ -1,6 +1,7 @@
 package main
 
 import (
+	"database/sql"
 	"encoding/json"
 	"fmt"
 	"github.com/gorilla/mux"
@@ -37,10 +38,6 @@ type Move struct {
 
 type Moves struct {
 	Moves []*Move `json:"moves"`
-}
-
-func HelloWorldHandler(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "Hello World")
 }
 
 func getMoves(moveId int) []*Move {
@@ -86,9 +83,52 @@ func PlayersHandler(w http.ResponseWriter, r *http.Request) {
 
 func InvitationsHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
+	err := r.ParseForm()
+	if err != nil {
+		// XXX, middleware etc
+		w.WriteHeader(http.StatusBadRequest)
+		fmt.Fprint(w, Response{"error": err.Error()})
+		return
+	}
+	game := r.Form.Get("Game")
+	if game == "" {
+		w.WriteHeader(http.StatusBadRequest)
+		fmt.Fprint(w, Response{"error": "No game specified"})
+		return
+	}
 	invitedPlayerName := mux.Vars(r)["player"]
+	if invitedPlayerName == "" {
+		w.WriteHeader(http.StatusBadRequest)
+		fmt.Fprint(w, Response{"error": "No player specified"})
+		return
+	}
+	player, err := arena.GetPlayerByName(invitedPlayerName)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			w.WriteHeader(http.StatusNotFound)
+			fmt.Fprint(w, Response{
+				"error": fmt.Sprintf("No players with name %s", invitedPlayerName),
+			})
+		} else {
+			// XXX, middleware etc
+			w.WriteHeader(http.StatusBadRequest)
+			fmt.Fprint(w, Response{"error": err.Error()})
+		}
+		return
+	}
+	if player == nil {
+		w.WriteHeader(http.StatusBadRequest)
+		fmt.Fprint(w, Response{"error": "player not found"})
+		return
+	}
+	response := SendInvite(&player.InviteUrl)
 	fmt.Println(invitedPlayerName)
 	fmt.Fprint(w, Response{"player": invitedPlayerName})
+}
+
+// Sends an invitation to the invite URL, waits for a response, parses it, etc.
+func SendInvite(inviteUrl string) bool {
+	return true
 }
 
 type Response map[string]interface{}

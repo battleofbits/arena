@@ -13,9 +13,10 @@ type Player struct {
 	// The player's unique Id
 	Name string `json:"name"`
 	// The player's friendly name
-	Username string `json:"username"`
-	Url      string `json:"-"`
-	Href     string `json:"href"`
+	Username  string `json:"username"`
+	MatchUrl  string `json:"-"`
+	InviteUrl string `json:"-"`
+	Href      string `json:"href"`
 }
 
 type Players struct {
@@ -46,15 +47,16 @@ func GetPlayers() ([]*Player, error) {
 	return players, nil
 }
 
-func CreatePlayer(username string, name string, url string) (*Player, error) {
+func CreatePlayer(username string, name string, matchUrl string, inviteUrl string) (*Player, error) {
 	db := GetConnection()
 	defer db.Close()
 	player := &Player{
-		Username: username,
-		Name:     name,
-		Url:      url,
+		Username:  username,
+		Name:      name,
+		MatchUrl:  matchUrl,
+		InviteUrl: inviteUrl,
 	}
-	err := db.QueryRow("INSERT INTO players (username, name, url) VALUES ($1, $2, $3) RETURNING id", username, name, url).Scan(&player.Id)
+	err := db.QueryRow("INSERT INTO players (username, name, match_url, invite_url) VALUES ($1, $2, $3) RETURNING id", username, name, matchUrl, inviteUrl).Scan(&player.Id)
 	var pqerr *pq.Error
 	if err != nil {
 		pqerr = err.(*pq.Error)
@@ -70,7 +72,7 @@ func GetPlayerByName(name string) (*Player, error) {
 	var p Player
 	db := GetConnection()
 	defer db.Close()
-	err := db.QueryRow("SELECT * FROM players WHERE name = $1", name).Scan(&p.Id, &p.Username, &p.Name, &p.Url)
+	err := db.QueryRow("SELECT id, username, name, match_url, invite_url FROM players WHERE name = $1", name).Scan(&p.Id, &p.Username, &p.Name, &p.MatchUrl, &p.InviteUrl)
 	if err != nil {
 		return &Player{}, err
 	} else {
@@ -82,7 +84,7 @@ func GetPlayerById(playerId int) (*Player, error) {
 	var p Player
 	db := GetConnection()
 	defer db.Close()
-	err := db.QueryRow("SELECT * FROM players WHERE id = $1", playerId).Scan(&p.Id, &p.Username, &p.Name, &p.Url)
+	err := db.QueryRow("SELECT id, username, name, match_url, invite_url FROM players WHERE id = $1", playerId).Scan(&p.Id, &p.Username, &p.Name, &p.MatchUrl, &p.InviteUrl)
 	if err != nil {
 		return &Player{}, err
 	} else {

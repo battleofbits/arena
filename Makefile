@@ -32,5 +32,5 @@ test: format
 	go test ./...
 
 serve: format
-	go install
-	arena
+	go build ./arena ./server
+	go run server/server.go

@@ -65,7 +65,7 @@ func GetMove(match *FourUpMatch) (int, error) {
 	turn := serializeTurn(match)
 	postBody, err := json.Marshal(turn)
 	checkError(err)
-	httpResponse, err := MakeRequest(match.CurrentPlayer.Url, postBody)
+	httpResponse, err := MakeRequest(match.CurrentPlayer.MatchUrl, postBody)
 	return ParseResponse(httpResponse)
 }
 
