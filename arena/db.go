@@ -12,7 +12,7 @@ func checkError(err error) {
 	}
 }
 
-func getConnection() *sql.DB {
+func GetConnection() *sql.DB {
 	// XXX
 	//config, err := toml.LoadFile("config.toml")
 	//checkError(err)

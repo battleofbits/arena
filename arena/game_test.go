@@ -32,16 +32,16 @@ func TestSerializeTurn(t *testing.T) {
 	}
 }
 
-func TestDoGame(t *testing.T) {
-	redPlayer, redErr := CreatePlayer("Kevin Burke", "kevinburke", URL)
-	if redErr != nil {
-		t.Fatalf(redErr.Error())
-	}
-	blackPlayer, _ := CreatePlayer("Kyle Conroy", "kyleconroy", URL)
-	match := CreateFourUpMatch(redPlayer, blackPlayer)
-	dbErr := WriteMatch(match)
-	if dbErr != nil {
-		t.Fatalf(dbErr.Error())
-	}
-	match = DoMatch(match, redPlayer, blackPlayer)
-}
+//func TestDoGame(t *testing.T) {
+//redPlayer, redErr := CreatePlayer("Kevin Burke", "kevinburke", URL)
+//if redErr != nil {
+//t.Fatalf(redErr.Error())
+//}
+//blackPlayer, _ := CreatePlayer("Kyle Conroy", "kyleconroy", URL)
+//match := CreateFourUpMatch(redPlayer, blackPlayer)
+//dbErr := WriteMatch(match)
+//if dbErr != nil {
+//t.Fatalf(dbErr.Error())
+//}
+//match = DoMatch(match, redPlayer, blackPlayer)
+//}

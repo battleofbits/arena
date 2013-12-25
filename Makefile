@@ -30,3 +30,7 @@ format: deps
 
 test: format
 	go test ./...
+
+serve: format
+	go install
+	arena

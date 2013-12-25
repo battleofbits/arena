@@ -27,23 +27,27 @@ func (p *Player) SetHref() {
 	p.Href = fmt.Sprintf("https://battleofbits.com/players/%s", p.Name)
 }
 
-func GetPlayers() []*Player {
-	db := getConnection()
+func GetPlayers() ([]*Player, error) {
+	db := GetConnection()
 	rows, err := db.Query("SELECT username, name from players")
-	checkError(err)
+	if err != nil {
+		return nil, err
+	}
 	var players []*Player
 	for rows.Next() {
 		var p Player
 		err = rows.Scan(&p.Username, &p.Name)
-		checkError(err)
+		if err != nil {
+			return nil, err
+		}
 		p.SetHref()
 		players = append(players, &p)
 	}
-	return players
+	return players, nil
 }
 
 func CreatePlayer(username string, name string, url string) (*Player, error) {
-	db := getConnection()
+	db := GetConnection()
 	defer db.Close()
 	player := &Player{
 		Username: username,
@@ -64,7 +68,7 @@ func CreatePlayer(username string, name string, url string) (*Player, error) {
 
 func GetPlayerByName(name string) (*Player, error) {
 	var p Player
-	db := getConnection()
+	db := GetConnection()
 	defer db.Close()
 	err := db.QueryRow("SELECT * FROM players WHERE name = $1", name).Scan(&p.Id, &p.Username, &p.Name, &p.Url)
 	if err != nil {
@@ -76,7 +80,7 @@ func GetPlayerByName(name string) (*Player, error) {
 
 func GetPlayerById(playerId int) (*Player, error) {
 	var p Player
-	db := getConnection()
+	db := GetConnection()
 	defer db.Close()
 	err := db.QueryRow("SELECT * FROM players WHERE id = $1", playerId).Scan(&p.Id, &p.Username, &p.Name, &p.Url)
 	if err != nil {

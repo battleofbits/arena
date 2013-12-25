@@ -93,7 +93,7 @@ func NotifyLoser(loser *Player) {
 }
 
 func MarkWinner(match *FourUpMatch, winner *Player) error {
-	db := getConnection()
+	db := GetConnection()
 	defer db.Close()
 	_, err := db.Exec("UPDATE fourup_matches SET winner = $1, "+
 		"finished = NOW() at time zone 'utc' WHERE id = $2",
@@ -101,9 +101,11 @@ func MarkWinner(match *FourUpMatch, winner *Player) error {
 	return err
 }
 
+var moveWriter = WriteMove
+
 // Write a new move to the database
 func WriteMove(move int, match *FourUpMatch) (int64, error) {
-	db := getConnection()
+	db := GetConnection()
 	defer db.Close()
 	query := "INSERT INTO fourup_moves (fourup_column, player, move_number, match_id, played)" +
 		"VALUES ($1, $2, $3, $4, NOW() at time zone 'utc') RETURNING id"
