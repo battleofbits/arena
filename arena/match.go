@@ -35,7 +35,7 @@ func CreateFourUpMatch(redPlayer *Player, blackPlayer *Player) *FourUpMatch {
 }
 
 func WriteMatch(match *FourUpMatch) error {
-	db := getConnection()
+	db := GetConnection()
 	defer db.Close()
 	stringBoard := GetStringBoard(match.Board)
 	jsonBoard, err := json.Marshal(stringBoard)
@@ -51,7 +51,7 @@ func WriteMatch(match *FourUpMatch) error {
 // Update the match in the database
 // Assumes the match has been initialized at some point
 func UpdateMatch(match *FourUpMatch) error {
-	db := getConnection()
+	db := GetConnection()
 	defer db.Close()
 	stringBoard := GetStringBoard(match.Board)
 	jsonBoard, err := json.Marshal(stringBoard)

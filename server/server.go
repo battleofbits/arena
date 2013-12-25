@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"github.com/gorilla/mux"
 	"github.com/hoisie/web"
-	"github.com/kevinburke/arena"
+	"github.com/kevinburke/arena/arena"
 	"log"
 	"net/http"
 	"strconv"
@@ -104,7 +104,7 @@ func (r Response) String() (s string) {
 }
 
 func moves(ctx *web.Context, matchId string) []byte {
-	db := getConnection()
+	db := arena.GetConnection()
 	// XXX do a join here to get player name
 	query := "SELECT fourup_column, player, played FROM fourup_moves WHERE match_id = $1"
 	rows, err := db.Query(query, matchId)
@@ -115,7 +115,7 @@ func moves(ctx *web.Context, matchId string) []byte {
 		var pId int
 		err = rows.Scan(&m.Column, &pId, &m.Played)
 		checkError(err)
-		player, err := GetPlayerById(pId)
+		player, err := arena.GetPlayerById(pId)
 		checkError(err)
 		player.SetHref()
 		m.Player = player.Href

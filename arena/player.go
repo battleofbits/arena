@@ -28,7 +28,7 @@ func (p *Player) SetHref() {
 }
 
 func GetPlayers() ([]*Player, error) {
-	db := getConnection()
+	db := GetConnection()
 	rows, err := db.Query("SELECT username, name from players")
 	if err != nil {
 		return nil, err
@@ -47,7 +47,7 @@ func GetPlayers() ([]*Player, error) {
 }
 
 func CreatePlayer(username string, name string, url string) (*Player, error) {
-	db := getConnection()
+	db := GetConnection()
 	defer db.Close()
 	player := &Player{
 		Username: username,
@@ -68,7 +68,7 @@ func CreatePlayer(username string, name string, url string) (*Player, error) {
 
 func GetPlayerByName(name string) (*Player, error) {
 	var p Player
-	db := getConnection()
+	db := GetConnection()
 	defer db.Close()
 	err := db.QueryRow("SELECT * FROM players WHERE name = $1", name).Scan(&p.Id, &p.Username, &p.Name, &p.Url)
 	if err != nil {
@@ -80,7 +80,7 @@ func GetPlayerByName(name string) (*Player, error) {
 
 func GetPlayerById(playerId int) (*Player, error) {
 	var p Player
-	db := getConnection()
+	db := GetConnection()
 	defer db.Close()
 	err := db.QueryRow("SELECT * FROM players WHERE id = $1", playerId).Scan(&p.Id, &p.Username, &p.Name, &p.Url)
 	if err != nil {
