@@ -1,4 +1,4 @@
-package arena
+package main
 
 import (
 	"encoding/json"

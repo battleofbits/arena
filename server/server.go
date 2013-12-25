@@ -1,10 +1,12 @@
-package arena
+package main
 
 import (
 	"encoding/json"
 	"fmt"
 	"github.com/gorilla/mux"
 	"github.com/hoisie/web"
+	"github.com/kevinburke/arena"
+	"log"
 	"net/http"
 	"strconv"
 	"time"
@@ -12,9 +14,15 @@ import (
 
 var moveGetter = getMoves
 
+func checkError(err error) {
+	if err != nil {
+		log.Fatalf(err.Error())
+	}
+}
+
 func players(ctx *web.Context) []byte {
 	ctx.SetHeader("Content-Type", "application/json", true)
-	players, err := GetPlayers()
+	players, err := arena.GetPlayers()
 	checkError(err)
 	jsonPlayers, err := json.Marshal(players)
 	checkError(err)
@@ -37,7 +45,7 @@ func HelloWorldHandler(w http.ResponseWriter, r *http.Request) {
 
 func getMoves(moveId int) []*Move {
 	fmt.Println("getting move %d", moveId)
-	db := getConnection()
+	db := arena.GetConnection()
 	// XXX do a join here to get player name
 	query := "SELECT fourup_column, player, played FROM fourup_moves WHERE match_id = $1"
 	rows, err := db.Query(query, moveId)
@@ -48,7 +56,7 @@ func getMoves(moveId int) []*Move {
 		var pId int
 		err = rows.Scan(&m.Column, &pId, &m.Played)
 		checkError(err)
-		player, err := GetPlayerById(pId)
+		player, err := arena.GetPlayerById(pId)
 		checkError(err)
 		player.SetHref()
 		m.Player = player.Href
@@ -71,14 +79,16 @@ func MovesHandler(w http.ResponseWriter, r *http.Request) {
 
 func PlayersHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	players, err := GetPlayers()
+	players, err := arena.GetPlayers()
 	checkError(err)
 	fmt.Fprint(w, Response{"players": players})
 }
 
 func InvitationsHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-
+	invitedPlayerName := mux.Vars(r)["player"]
+	fmt.Println(invitedPlayerName)
+	fmt.Fprint(w, Response{"player": invitedPlayerName})
 }
 
 type Response map[string]interface{}
@@ -119,8 +129,13 @@ func moves(ctx *web.Context, matchId string) []byte {
 func DoServer() *mux.Router {
 	r := mux.NewRouter()
 	r.HandleFunc("/players", PlayersHandler).Methods("GET")
-	r.HandleFunc("/games/four-up/matches/([^/]+)/moves", MovesHandler).Methods("GET")
-	r.HandleFunc("/players/([^/]+)/invitations", InvitationsHandler).Methods("POST")
+	r.HandleFunc("/games/four-up/matches/{match}/moves", MovesHandler).Methods("GET")
+	r.HandleFunc("/players/{player}/invitations", InvitationsHandler).Methods("POST")
 	http.Handle("/", r)
 	return r
+}
+
+func main() {
+	router := DoServer()
+	log.Fatal(http.ListenAndServe(":8080", router))
 }
