@@ -76,6 +76,11 @@ func PlayersHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprint(w, Response{"players": players})
 }
 
+func InvitationsHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
+}
+
 type Response map[string]interface{}
 
 func (r Response) String() (s string) {
@@ -113,8 +118,9 @@ func moves(ctx *web.Context, matchId string) []byte {
 
 func DoServer() *mux.Router {
 	r := mux.NewRouter()
-	r.HandleFunc("/players", PlayersHandler)
-	r.HandleFunc("/games/four-up/matches/([^/]+)/moves", MovesHandler)
+	r.HandleFunc("/players", PlayersHandler).Methods("GET")
+	r.HandleFunc("/games/four-up/matches/([^/]+)/moves", MovesHandler).Methods("GET")
+	r.HandleFunc("/players/([^/]+)/invitations", InvitationsHandler).Methods("POST")
 	http.Handle("/", r)
 	return r
 }
