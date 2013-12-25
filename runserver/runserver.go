@@ -1,7 +1,7 @@
 package main
 
 import (
-	"arena"
+	"github.com/kevinburke/arena"
 	"log"
 	"net/http"
 )

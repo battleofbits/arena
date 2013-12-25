@@ -36,6 +36,7 @@ func HelloWorldHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func getMoves(moveId int) []*Move {
+	fmt.Println("getting move %d", moveId)
 	db := getConnection()
 	// XXX do a join here to get player name
 	query := "SELECT fourup_column, player, played FROM fourup_moves WHERE match_id = $1"

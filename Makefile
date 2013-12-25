@@ -30,3 +30,7 @@ format: deps
 
 test: format
 	go test ./...
+
+serve: format
+	go get -d -v ./...
+	go run runserver/runserver.go
