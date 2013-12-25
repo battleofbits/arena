@@ -139,3 +139,15 @@ A match ends if any of the following conditions are true:
 - Your server does not respond with a valid move.
 - Your move is invalid (for example, in connect four, imagine trying to make
   a move in a column that is already full)
+- You make a move that either wins the game or loses the game.
+
+When the game ends, we'll make one final request to your webhook url, with
+information about the game winner and the current state of the board.
+
+In the case of a forfeit or a server malfunction, we'll also make a request to
+the ErrorUrl for both players, with details about the error.
+
+### Viewing the Leaderboard
+
+Coming soon
+
