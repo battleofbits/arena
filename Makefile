@@ -34,3 +34,7 @@ test: format
 serve: format
 	go build ./arena ./server
 	go run server/server.go
+
+mock: format
+	go build ./arena ./mock
+	go run mock/mock.go
