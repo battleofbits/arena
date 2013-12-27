@@ -56,7 +56,7 @@ func CreatePlayer(username string, name string, matchUrl string, inviteUrl strin
 		MatchUrl:  matchUrl,
 		InviteUrl: inviteUrl,
 	}
-	err := db.QueryRow("INSERT INTO players (username, name, match_url, invite_url) VALUES ($1, $2, $3) RETURNING id", username, name, matchUrl, inviteUrl).Scan(&player.Id)
+	err := db.QueryRow("INSERT INTO players (username, name, match_url, invite_url) VALUES ($1, $2, $3, $4) RETURNING id", username, name, matchUrl, inviteUrl).Scan(&player.Id)
 	var pqerr *pq.Error
 	if err != nil {
 		pqerr = err.(*pq.Error)

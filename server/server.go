@@ -4,10 +4,11 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"github.com/battleofbits/arena/arena"
 	"github.com/gorilla/mux"
 	"github.com/hoisie/web"
-	"github.com/kevinburke/arena/arena"
 	"log"
+	"math/rand"
 	"net/http"
 	"strconv"
 	"time"
@@ -38,6 +39,12 @@ type Move struct {
 
 type Moves struct {
 	Moves []*Move `json:"moves"`
+}
+
+type InviteRequest struct {
+	Game             string `json:"game"`
+	RequestingPlayer string `json:"requesting_player"`
+	FirstMove        string `json:"first_move"`
 }
 
 func getMoves(moveId int) []*Move {
@@ -118,16 +125,50 @@ func InvitationsHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	if player == nil {
 		w.WriteHeader(http.StatusBadRequest)
-		fmt.Fprint(w, Response{"error": "player not found"})
+		fmt.Fprint(w, Response{
+			"error": fmt.Sprintf("player %s not found", invitedPlayerName),
+		})
 		return
 	}
-	response := SendInvite(&player.InviteUrl)
-	fmt.Println(invitedPlayerName)
-	fmt.Fprint(w, Response{"player": invitedPlayerName})
+	requestingPlayer := "kevinburke"
+	incomingFirstMove := r.Form.Get("FirstMove")
+	var playerWithFirstMove string
+	if incomingFirstMove == "random" || incomingFirstMove == "" {
+		if rand.Intn(2) == 0 {
+			playerWithFirstMove = requestingPlayer
+		} else {
+			playerWithFirstMove = invitedPlayerName
+		}
+	} else if incomingFirstMove != requestingPlayer &&
+		incomingFirstMove != invitedPlayerName {
+		w.WriteHeader(http.StatusBadRequest)
+		fmt.Fprint(w, Response{
+			"error": fmt.Sprintf("first move value was %s but player %s is "+
+				"not in the game", incomingFirstMove, invitedPlayerName),
+		})
+	} else {
+		playerWithFirstMove = incomingFirstMove
+	}
+	response := SendInvite(player.InviteUrl, game, playerWithFirstMove)
+	fmt.Fprint(w, Response{"invitation": response})
 }
 
 // Sends an invitation to the invite URL, waits for a response, parses it, etc.
-func SendInvite(inviteUrl string) bool {
+func SendInvite(inviteUrl string, game string, firstMove string) bool {
+	inviteStruct := &InviteRequest{
+		Game: game,
+		// XXX, do authentication or use a URL parameter
+		RequestingPlayer: "kevinburke",
+		FirstMove:        firstMove,
+	}
+	inviteBody, err := json.Marshal(inviteStruct)
+	checkError(err)
+	res, err := arena.MakeRequest(inviteUrl, inviteBody)
+	if err != nil {
+		log.Printf(err.Error())
+		return false
+	}
+	fmt.Println(res)
 	return true
 }
 
