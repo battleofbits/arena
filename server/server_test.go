@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/gorilla/mux"
 	"net/http"
 	"net/http/httptest"
@@ -74,6 +75,35 @@ func TestMoves(t *testing.T) {
 
 func reassignMoveGetter(to func(int) []*Move) {
 	moveGetter = to
+}
+
+func TestSendInviteOK(t *testing.T) {
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != "POST" {
+			t.Errorf("expected method to be POST, instead was %s", r.Method)
+		}
+		decoder := json.NewDecoder(r.Body)
+		var is *InviteRequest
+		err := decoder.Decode(&is)
+		if err != nil {
+			t.Errorf(err.Error())
+		}
+		fmt.Println(is.Game)
+		if is.Game != "fourup" {
+			t.Errorf("expected 'game' to be fourup, instead was %s", is.Game)
+		}
+		if is.RequestingPlayer != "kevinburke" {
+			t.Errorf("expected requesting player to be kevinburke, "+
+				"instead was %s", is.RequestingPlayer)
+		}
+		w.WriteHeader(http.StatusOK)
+		fmt.Fprintln(w, "Hello, client")
+	}))
+
+	err := SendInvite(ts.URL, "fourup", "kevinburke")
+	if err != nil {
+		t.Errorf(err.Error())
+	}
 }
 
 //func buildTestRequest(method string, path string, body string, headers map[string][]string, cookies []*http.Cookie) *http.Request {

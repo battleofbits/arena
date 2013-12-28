@@ -3,6 +3,7 @@ package main
 import (
 	"database/sql"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/battleofbits/arena/arena"
 	"github.com/gorilla/mux"
@@ -146,15 +147,22 @@ func InvitationsHandler(w http.ResponseWriter, r *http.Request) {
 			"error": fmt.Sprintf("first move value was %s but player %s is "+
 				"not in the game", incomingFirstMove, invitedPlayerName),
 		})
+		return
 	} else {
 		playerWithFirstMove = incomingFirstMove
 	}
-	response := SendInvite(player.InviteUrl, game, playerWithFirstMove)
-	fmt.Fprint(w, Response{"invitation": response})
+	err = SendInvite(player.InviteUrl, game, playerWithFirstMove)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		fmt.Fprint(w, Response{"error": err.Error()})
+		return
+	} else {
+		fmt.Fprint(w, Response{"invitation": "success"})
+	}
 }
 
 // Sends an invitation to the invite URL, waits for a response, parses it, etc.
-func SendInvite(inviteUrl string, game string, firstMove string) bool {
+func SendInvite(inviteUrl string, game string, firstMove string) error {
 	inviteStruct := &InviteRequest{
 		Game: game,
 		// XXX, do authentication or use a URL parameter
@@ -166,10 +174,16 @@ func SendInvite(inviteUrl string, game string, firstMove string) bool {
 	res, err := arena.MakeRequest(inviteUrl, inviteBody)
 	if err != nil {
 		log.Printf(err.Error())
-		return false
+		return err
 	}
-	fmt.Println(res)
-	return true
+	if 200 <= res.StatusCode && res.StatusCode <= 299 {
+		return nil
+	} else {
+		return errors.New(fmt.Sprintf(
+			"Received invalid status code %s from invite url %s",
+			res.Status, inviteUrl,
+		))
+	}
 }
 
 type Response map[string]interface{}
