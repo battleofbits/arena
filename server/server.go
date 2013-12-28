@@ -180,7 +180,7 @@ func SendInvite(inviteUrl string, game string, firstMove string) error {
 		return nil
 	} else {
 		return errors.New(fmt.Sprintf(
-			"Received invalid status code %s from invite url %s",
+			"Received error status %s from invite url %s",
 			res.Status, inviteUrl,
 		))
 	}

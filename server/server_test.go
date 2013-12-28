@@ -6,6 +6,7 @@ import (
 	"github.com/gorilla/mux"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 	"time"
 )
@@ -103,6 +104,20 @@ func TestSendInviteOK(t *testing.T) {
 	err := SendInvite(ts.URL, "fourup", "kevinburke")
 	if err != nil {
 		t.Errorf(err.Error())
+	}
+}
+
+func TestSendInviteError(t *testing.T) {
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusBadRequest)
+		fmt.Fprintln(w, "Hello, client")
+	}))
+	err := SendInvite(ts.URL, "fourup", "kevinburke")
+	if err != nil {
+		expected := "Received error status 400 Bad Request"
+		if !strings.Contains(err.Error(), expected) {
+			t.Errorf("got weird error %s, expected '%s'", err.Error(), expected)
+		}
 	}
 }
 
