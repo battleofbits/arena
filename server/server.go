@@ -216,6 +216,7 @@ func MovesHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprint(w, Response{"moves": moves})
 }
 
+// Common middleware for all API functions
 var headerMiddleware = func(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 		log.Print(req.Method, " ", req.URL)
