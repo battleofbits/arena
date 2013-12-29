@@ -23,15 +23,6 @@ func checkError(err error) {
 	}
 }
 
-func players(ctx *web.Context) []byte {
-	ctx.SetHeader("Content-Type", "application/json", true)
-	players, err := arena.GetPlayers()
-	checkError(err)
-	jsonPlayers, err := json.Marshal(players)
-	checkError(err)
-	return jsonPlayers
-}
-
 type Move struct {
 	Player string    `json:"player"`
 	Column int       `json:"column"`
@@ -70,27 +61,13 @@ func getMoves(moveId int) []*Move {
 	return moves
 }
 
-func MovesHandler(w http.ResponseWriter, r *http.Request) {
-	idStr := mux.Vars(r)["match"]
-	id, err := strconv.Atoi(idStr)
-	if err != nil {
-		// XXX, 400 error.
-		fmt.Println("bad id")
-	}
-	moves := moveGetter(id)
-	w.Header().Set("Content-Type", "application/json")
-	fmt.Fprint(w, Response{"moves": moves})
-}
-
 func PlayersHandler(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
 	players, err := arena.GetPlayers()
 	checkError(err)
 	fmt.Fprint(w, Response{"players": players})
 }
 
 func InvitationsHandler(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
 	err := r.ParseForm()
 	if err != nil {
 		// XXX, middleware etc
@@ -158,6 +135,13 @@ func InvitationsHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	} else {
 		fmt.Fprint(w, Response{"invitation": "success"})
+		//CreateAndDoMatch()
+		//match := CreateFourUpMatch(redPlayer, blackPlayer)
+		//dbErr := WriteMatch(match)
+		//if dbErr != nil {
+		//t.Fatalf(dbErr.Error())
+		//}
+		//match = DoMatch(match, redPlayer, blackPlayer)
 	}
 }
 
@@ -221,11 +205,32 @@ func moves(ctx *web.Context, matchId string) []byte {
 	return jsonMoves
 }
 
+func MovesHandler(w http.ResponseWriter, r *http.Request) {
+	idStr := mux.Vars(r)["match"]
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		// XXX, 400 error.
+		fmt.Println("bad id")
+	}
+	moves := moveGetter(id)
+	fmt.Fprint(w, Response{"moves": moves})
+}
+
+var headerMiddleware = func(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+		log.Print(req.Method, " ", req.URL)
+		w.Header().Set("Content-Type", "application/json")
+		next.ServeHTTP(w, req)
+	})
+}
+
 func DoServer() *mux.Router {
 	r := mux.NewRouter()
-	r.HandleFunc("/players", PlayersHandler).Methods("GET")
-	r.HandleFunc("/games/four-up/matches/{match}/moves", MovesHandler).Methods("GET")
-	r.HandleFunc("/players/{player}/invitations", InvitationsHandler).Methods("POST")
+	r.Handle("/players", headerMiddleware(http.HandlerFunc(PlayersHandler))).Methods("GET")
+	r.Handle("/games/four-up/matches/{match}/moves",
+		headerMiddleware(http.HandlerFunc(MovesHandler))).Methods("GET")
+	r.Handle("/players/{player}/invitations",
+		headerMiddleware(http.HandlerFunc(InvitationsHandler))).Methods("POST")
 	http.Handle("/", r)
 	return r
 }

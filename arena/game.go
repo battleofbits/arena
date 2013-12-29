@@ -166,6 +166,10 @@ func DoPlayerMove(player *Player, otherPlayer *Player, match *FourUpMatch, playe
 	return nil
 }
 
+func CreateAndDoMatch() {
+
+}
+
 func DoTieGame(match *FourUpMatch, playerOne *Player, playerTwo *Player) {
 	fmt.Println("Tie Game!")
 }

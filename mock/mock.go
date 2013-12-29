@@ -7,7 +7,7 @@ import (
 	"log"
 )
 
-const URL = "http://localhost:5000/fourup"
+const URL = "http://localhost:5000"
 
 func checkError(err error) {
 	if err != nil {
@@ -16,8 +16,8 @@ func checkError(err error) {
 }
 
 func main() {
-	_, redErr := arena.CreatePlayer("Kevin Burke", "kevinburke", URL, URL)
+	_, redErr := arena.CreatePlayer("Kevin Burke", "kevinburke", URL+"/fourup", URL+"/invite")
 	checkError(redErr)
-	_, blackErr := arena.CreatePlayer("Kyle Conroy", "kyleconroy", URL, URL)
+	_, blackErr := arena.CreatePlayer("Kyle Conroy", "kyleconroy", URL+"/fourup", URL+"/invite")
 	checkError(blackErr)
 }
