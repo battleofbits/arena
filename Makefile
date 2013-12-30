@@ -33,7 +33,8 @@ test: format
 
 serve: format
 	go build ./arena ./server
-	go run server/server.go
+	go install ./server
+	server
 
 mock: format
 	go build ./arena ./mock
