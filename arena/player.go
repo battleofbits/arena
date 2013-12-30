@@ -30,6 +30,7 @@ func (p *Player) SetHref() {
 
 func GetPlayers() ([]*Player, error) {
 	db := GetConnection()
+	defer db.Close()
 	rows, err := db.Query("SELECT username, name from players")
 	if err != nil {
 		return nil, err
@@ -85,13 +86,14 @@ func GetPlayer(attr string, value interface{}) (*Player, error) {
 	var p Player
 	db := GetConnection()
 	defer db.Close()
-	query := fmt.Sprint("SELECT id, username, name, match_url, invite_url "+
+	query := fmt.Sprintf("SELECT id, username, name, match_url, invite_url "+
 		"FROM players WHERE %s = $1", attr)
 	err := db.QueryRow(query, value).Scan(&p.Id, &p.Username, &p.Name,
 		&p.MatchUrl, &p.InviteUrl)
 	if err != nil {
 		return &Player{}, err
 	} else {
+		p.SetHref()
 		return &p, nil
 	}
 }

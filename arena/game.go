@@ -167,14 +167,17 @@ func DoPlayerMove(player *Player, otherPlayer *Player, match *FourUpMatch, playe
 	return nil
 }
 
-func CreateAndDoMatch(redPlayer *Player, blackPlayer *Player) error {
+func CreateMatch(redPlayer *Player, blackPlayer *Player) (*FourUpMatch, error) {
 	match := CreateFourUpMatch(redPlayer, blackPlayer)
 	dbErr := WriteMatch(match)
 	if dbErr != nil {
-		return dbErr
+		return nil, dbErr
 	}
-	go DoMatch(match, redPlayer, blackPlayer)
-	return nil
+	return match, nil
+}
+
+func StartMatch(match *FourUpMatch, playerOne *Player, playerTwo *Player) {
+	go DoMatch(match, playerOne, playerTwo)
 }
 
 func DoTieGame(match *FourUpMatch, playerOne *Player, playerTwo *Player) {

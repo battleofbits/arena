@@ -4,10 +4,13 @@ package arena
 import (
 	"encoding/json"
 	"fmt"
+	"time"
 )
 
 type FourUpMatch struct {
 	Id          int64
+	Started     time.Time
+	Finished    time.Time
 	RedPlayer   *Player
 	BlackPlayer *Player
 	// Whose turn is it
@@ -38,6 +41,7 @@ func CreateFourUpMatch(redPlayer *Player, blackPlayer *Player) *FourUpMatch {
 		// Red plays first, I believe.
 		CurrentPlayer: redPlayer,
 		MoveId:        0,
+		Started:       time.Now().UTC(),
 	}
 	return match
 }

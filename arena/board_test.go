@@ -41,7 +41,8 @@ func TestGameOver(t *testing.T) {
 		[7]int8{1, 0, 0, 0, 0, 0, 2},
 	}
 	if !GameOver(winThirdVertical) {
-		t.Errorf("Game should be over if 4 vertical tiles starting in top row, form a connect four")
+		t.Errorf("Game should be over if 4 vertical tiles " +
+			"starting in top row, form a connect four")
 	}
 
 	winVertical := [NumRows][NumColumns]int8{
