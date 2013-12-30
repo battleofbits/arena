@@ -17,6 +17,19 @@ typing:
 
 GET /games/<game-name>/matches
 
+{
+    "matches": [
+        {
+            "id": 5,
+            "winner": null,
+            "current_move": "kyleconroy",
+            "red": "kevinburke",
+            "black": "kyleconroy",
+            "board":
+        }
+    ]
+}
+
 ### Player
 
 A player is a person who signs up on the website. A player has:
