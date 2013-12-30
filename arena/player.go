@@ -47,7 +47,8 @@ func GetPlayers() ([]*Player, error) {
 	return players, nil
 }
 
-func CreatePlayer(username string, name string, matchUrl string, inviteUrl string) (*Player, error) {
+func CreatePlayer(username string, name string, matchUrl string,
+	inviteUrl string) (*Player, error) {
 	db := GetConnection()
 	defer db.Close()
 	player := &Player{
@@ -56,7 +57,11 @@ func CreatePlayer(username string, name string, matchUrl string, inviteUrl strin
 		MatchUrl:  matchUrl,
 		InviteUrl: inviteUrl,
 	}
-	err := db.QueryRow("INSERT INTO players (username, name, match_url, invite_url) VALUES ($1, $2, $3, $4) RETURNING id", username, name, matchUrl, inviteUrl).Scan(&player.Id)
+	query := "INSERT INTO players " +
+		"(username, name, match_url, invite_url)" +
+		"VALUES ($1, $2, $3, $4) RETURNING id"
+	err := db.QueryRow(query, username, name, matchUrl, inviteUrl).Scan(
+		&player.Id)
 	var pqerr *pq.Error
 	if err != nil {
 		pqerr = err.(*pq.Error)
@@ -69,22 +74,21 @@ func CreatePlayer(username string, name string, matchUrl string, inviteUrl strin
 }
 
 func GetPlayerByName(name string) (*Player, error) {
-	var p Player
-	db := GetConnection()
-	defer db.Close()
-	err := db.QueryRow("SELECT id, username, name, match_url, invite_url FROM players WHERE name = $1", name).Scan(&p.Id, &p.Username, &p.Name, &p.MatchUrl, &p.InviteUrl)
-	if err != nil {
-		return &Player{}, err
-	} else {
-		return &p, nil
-	}
+	return GetPlayer("name", name)
 }
 
 func GetPlayerById(playerId int) (*Player, error) {
+	return GetPlayer("id", playerId)
+}
+
+func GetPlayer(attr string, value interface{}) (*Player, error) {
 	var p Player
 	db := GetConnection()
 	defer db.Close()
-	err := db.QueryRow("SELECT id, username, name, match_url, invite_url FROM players WHERE id = $1", playerId).Scan(&p.Id, &p.Username, &p.Name, &p.MatchUrl, &p.InviteUrl)
+	query := fmt.Sprint("SELECT id, username, name, match_url, invite_url "+
+		"FROM players WHERE %s = $1", attr)
+	err := db.QueryRow(query, value).Scan(&p.Id, &p.Username, &p.Name,
+		&p.MatchUrl, &p.InviteUrl)
 	if err != nil {
 		return &Player{}, err
 	} else {

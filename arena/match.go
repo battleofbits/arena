@@ -13,8 +13,16 @@ type FourUpMatch struct {
 	// Whose turn is it
 	CurrentPlayer *Player
 	Winner        int64
-	Board         *[NumRows][NumColumns]int
+	Board         *[NumRows][NumColumns]int8
 	MoveId        int
+}
+
+func (m *FourUpMatch) GetCurrentTurnColor() int8 {
+	if m.CurrentPlayer == m.RedPlayer {
+		return Red
+	} else {
+		return Black
+	}
 }
 
 func getMatchHref(matchId int64) string {

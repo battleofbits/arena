@@ -34,7 +34,7 @@ type FourUpTurn struct {
 }
 
 type FourUpResponse struct {
-	Column int `json:"column"`
+	Column int8 `json:"column"`
 }
 
 func serializeTurn(match *FourUpMatch) *FourUpTurn {
@@ -61,7 +61,7 @@ func DoGameOver(match *FourUpMatch, winner *Player, loser *Player) {
 
 // Assemble and make an HTTP request to the user's URL
 // Returns the column of the response
-func GetMove(match *FourUpMatch) (int, error) {
+func GetMove(match *FourUpMatch) (int8, error) {
 	turn := serializeTurn(match)
 	postBody, err := json.Marshal(turn)
 	checkError(err)
@@ -70,7 +70,7 @@ func GetMove(match *FourUpMatch) (int, error) {
 }
 
 // Retrieves the column from the http response
-func ParseResponse(response *http.Response) (int, error) {
+func ParseResponse(response *http.Response) (int8, error) {
 	defer response.Body.Close()
 	body, err := ioutil.ReadAll(response.Body)
 	if err != nil {
@@ -104,7 +104,7 @@ func MarkWinner(match *FourUpMatch, winner *Player) error {
 var moveWriter = WriteMove
 
 // Write a new move to the database
-func WriteMove(move int, match *FourUpMatch) (int64, error) {
+func WriteMove(move int8, match *FourUpMatch) (int64, error) {
 	db := GetConnection()
 	defer db.Close()
 	query := "INSERT INTO fourup_moves (fourup_column, player, move_number, match_id, played)" +
@@ -117,9 +117,10 @@ func WriteMove(move int, match *FourUpMatch) (int64, error) {
 // Do a whole bunch of stuff associated with new moves
 // Error handling is a little tricky because most of the errors would be
 // database or other errors.
-func DoNewMove(move int, match *FourUpMatch) error {
+func DoNewMove(move int8, match *FourUpMatch) error {
 	var err error
-	match.Board, err = ApplyMoveToBoard(move, int(match.CurrentPlayer.Id), match.Board)
+	match.Board, err = ApplyMoveToBoard(move, match.GetCurrentTurnColor(),
+		match.Board)
 	// XXX
 	//if err != nil {
 	//DoForfeit(player, err)
@@ -137,7 +138,7 @@ func DoNewMove(move int, match *FourUpMatch) error {
 }
 
 // In the background, let people know about the new move
-func NotifySubscribers(move int, match *FourUpMatch) {
+func NotifySubscribers(move int8, match *FourUpMatch) {
 
 }
 
@@ -166,8 +167,14 @@ func DoPlayerMove(player *Player, otherPlayer *Player, match *FourUpMatch, playe
 	return nil
 }
 
-func CreateAndDoMatch() {
-
+func CreateAndDoMatch(redPlayer *Player, blackPlayer *Player) error {
+	match := CreateFourUpMatch(redPlayer, blackPlayer)
+	dbErr := WriteMatch(match)
+	if dbErr != nil {
+		return dbErr
+	}
+	go DoMatch(match, redPlayer, blackPlayer)
+	return nil
 }
 
 func DoTieGame(match *FourUpMatch, playerOne *Player, playerTwo *Player) {

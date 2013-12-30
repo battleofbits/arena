@@ -5,25 +5,25 @@ import (
 )
 
 func TestBoardFull(t *testing.T) {
-	fullBoard := [NumRows][NumColumns]int{
-		[7]int{2, 2, 2, 2, 2, 2, 2},
-		[7]int{2, 2, 2, 2, 2, 2, 2},
-		[7]int{1, 2, 2, 2, 2, 2, 2},
-		[7]int{1, 2, 2, 2, 2, 2, 2},
-		[7]int{1, 2, 2, 2, 2, 2, 2},
-		[7]int{1, 2, 2, 2, 2, 2, 2},
+	fullBoard := [NumRows][NumColumns]int8{
+		[7]int8{2, 2, 2, 2, 2, 2, 2},
+		[7]int8{2, 2, 2, 2, 2, 2, 2},
+		[7]int8{1, 2, 2, 2, 2, 2, 2},
+		[7]int8{1, 2, 2, 2, 2, 2, 2},
+		[7]int8{1, 2, 2, 2, 2, 2, 2},
+		[7]int8{1, 2, 2, 2, 2, 2, 2},
 	}
 	if !IsBoardFull(fullBoard) {
 		t.Errorf("Full board should be marked full")
 	}
 
-	boardWithRoom := [NumRows][NumColumns]int{
-		[7]int{2, 0, 2, 2, 2, 2, 2},
-		[7]int{2, 2, 2, 2, 2, 2, 2},
-		[7]int{1, 2, 2, 2, 2, 2, 2},
-		[7]int{1, 2, 2, 2, 2, 2, 2},
-		[7]int{1, 2, 2, 2, 2, 2, 2},
-		[7]int{1, 2, 2, 2, 2, 2, 2},
+	boardWithRoom := [NumRows][NumColumns]int8{
+		[7]int8{2, 0, 2, 2, 2, 2, 2},
+		[7]int8{2, 2, 2, 2, 2, 2, 2},
+		[7]int8{1, 2, 2, 2, 2, 2, 2},
+		[7]int8{1, 2, 2, 2, 2, 2, 2},
+		[7]int8{1, 2, 2, 2, 2, 2, 2},
+		[7]int8{1, 2, 2, 2, 2, 2, 2},
 	}
 	if IsBoardFull(boardWithRoom) {
 		t.Errorf("Board with room be marked not full")
@@ -32,85 +32,85 @@ func TestBoardFull(t *testing.T) {
 
 func TestGameOver(t *testing.T) {
 
-	winThirdVertical := [NumRows][NumColumns]int{
-		[7]int{0, 0, 0, 0, 0, 0, 1},
-		[7]int{0, 0, 0, 0, 0, 0, 1},
-		[7]int{0, 0, 0, 0, 0, 0, 1},
-		[7]int{1, 0, 0, 0, 0, 0, 1},
-		[7]int{1, 0, 0, 0, 0, 0, 2},
-		[7]int{1, 0, 0, 0, 0, 0, 2},
+	winThirdVertical := [NumRows][NumColumns]int8{
+		[7]int8{0, 0, 0, 0, 0, 0, 1},
+		[7]int8{0, 0, 0, 0, 0, 0, 1},
+		[7]int8{0, 0, 0, 0, 0, 0, 1},
+		[7]int8{1, 0, 0, 0, 0, 0, 1},
+		[7]int8{1, 0, 0, 0, 0, 0, 2},
+		[7]int8{1, 0, 0, 0, 0, 0, 2},
 	}
 	if !GameOver(winThirdVertical) {
 		t.Errorf("Game should be over if 4 vertical tiles starting in top row, form a connect four")
 	}
 
-	winVertical := [NumRows][NumColumns]int{
-		[7]int{0, 0, 0, 0, 0, 0, 0},
-		[7]int{0, 0, 0, 0, 0, 0, 0},
-		[7]int{1, 0, 0, 0, 0, 0, 0},
-		[7]int{1, 0, 0, 0, 0, 0, 0},
-		[7]int{1, 0, 0, 0, 0, 0, 0},
-		[7]int{1, 0, 0, 0, 0, 0, 0},
+	winVertical := [NumRows][NumColumns]int8{
+		[7]int8{0, 0, 0, 0, 0, 0, 0},
+		[7]int8{0, 0, 0, 0, 0, 0, 0},
+		[7]int8{1, 0, 0, 0, 0, 0, 0},
+		[7]int8{1, 0, 0, 0, 0, 0, 0},
+		[7]int8{1, 0, 0, 0, 0, 0, 0},
+		[7]int8{1, 0, 0, 0, 0, 0, 0},
 	}
 	if !GameOver(winVertical) {
 		t.Errorf("Game should be over if 4 vertical tiles are in a row")
 	}
 
-	winOtherVertical := [NumRows][NumColumns]int{
-		[7]int{0, 0, 0, 0, 0, 0, 0},
-		[7]int{0, 0, 0, 0, 0, 0, 0},
-		[7]int{0, 0, 0, 0, 0, 0, 1},
-		[7]int{0, 0, 0, 0, 0, 0, 1},
-		[7]int{0, 0, 0, 0, 0, 0, 1},
-		[7]int{0, 0, 0, 0, 0, 0, 1},
+	winOtherVertical := [NumRows][NumColumns]int8{
+		[7]int8{0, 0, 0, 0, 0, 0, 0},
+		[7]int8{0, 0, 0, 0, 0, 0, 0},
+		[7]int8{0, 0, 0, 0, 0, 0, 1},
+		[7]int8{0, 0, 0, 0, 0, 0, 1},
+		[7]int8{0, 0, 0, 0, 0, 0, 1},
+		[7]int8{0, 0, 0, 0, 0, 0, 1},
 	}
 	if !GameOver(winOtherVertical) {
 		t.Errorf("Game should be over if 4 other vertical tiles are in a row")
 	}
 
-	winHorizontal := [NumRows][NumColumns]int{
-		[7]int{0, 0, 0, 0, 0, 0, 0},
-		[7]int{0, 0, 0, 0, 0, 0, 0},
-		[7]int{0, 0, 1, 1, 1, 1, 0},
-		[7]int{0, 0, 0, 0, 0, 0, 0},
-		[7]int{0, 0, 0, 0, 0, 0, 0},
-		[7]int{0, 0, 0, 0, 0, 0, 0},
+	winHorizontal := [NumRows][NumColumns]int8{
+		[7]int8{0, 0, 0, 0, 0, 0, 0},
+		[7]int8{0, 0, 0, 0, 0, 0, 0},
+		[7]int8{0, 0, 1, 1, 1, 1, 0},
+		[7]int8{0, 0, 0, 0, 0, 0, 0},
+		[7]int8{0, 0, 0, 0, 0, 0, 0},
+		[7]int8{0, 0, 0, 0, 0, 0, 0},
 	}
 	if !GameOver(winHorizontal) {
 		t.Errorf("Game should be over if 4 horizontal tiles are in a row")
 	}
 
-	winDiagonal := [NumRows][NumColumns]int{
-		[7]int{0, 0, 0, 0, 0, 0, 0},
-		[7]int{0, 0, 0, 0, 0, 0, 0},
-		[7]int{0, 0, 1, 0, 0, 0, 0},
-		[7]int{0, 0, 0, 1, 0, 0, 0},
-		[7]int{0, 0, 0, 0, 1, 0, 0},
-		[7]int{0, 0, 0, 0, 0, 1, 0},
+	winDiagonal := [NumRows][NumColumns]int8{
+		[7]int8{0, 0, 0, 0, 0, 0, 0},
+		[7]int8{0, 0, 0, 0, 0, 0, 0},
+		[7]int8{0, 0, 1, 0, 0, 0, 0},
+		[7]int8{0, 0, 0, 1, 0, 0, 0},
+		[7]int8{0, 0, 0, 0, 1, 0, 0},
+		[7]int8{0, 0, 0, 0, 0, 1, 0},
 	}
 	if !GameOver(winDiagonal) {
 		t.Errorf("Game should be over if 4 southeast diagonal tiles are in a row")
 	}
 
-	winSouthwestDiagonal := [NumRows][NumColumns]int{
-		[7]int{0, 0, 0, 0, 0, 0, 0},
-		[7]int{0, 0, 0, 0, 0, 0, 0},
-		[7]int{0, 0, 0, 0, 1, 0, 0},
-		[7]int{0, 0, 0, 1, 0, 0, 0},
-		[7]int{0, 0, 1, 0, 1, 0, 0},
-		[7]int{0, 1, 0, 0, 0, 1, 0},
+	winSouthwestDiagonal := [NumRows][NumColumns]int8{
+		[7]int8{0, 0, 0, 0, 0, 0, 0},
+		[7]int8{0, 0, 0, 0, 0, 0, 0},
+		[7]int8{0, 0, 0, 0, 1, 0, 0},
+		[7]int8{0, 0, 0, 1, 0, 0, 0},
+		[7]int8{0, 0, 1, 0, 1, 0, 0},
+		[7]int8{0, 1, 0, 0, 0, 1, 0},
 	}
 	if !GameOver(winSouthwestDiagonal) {
 		t.Errorf("Game should be over if 4 southwest diagonal tiles are in a row")
 	}
 
-	unfinishedGame := [NumRows][NumColumns]int{
-		[7]int{0, 2, 0, 2, 0, 0, 0},
-		[7]int{0, 0, 2, 2, 1, 1, 1},
-		[7]int{0, 0, 1, 1, 2, 2, 2},
-		[7]int{0, 0, 2, 1, 2, 1, 0},
-		[7]int{0, 0, 0, 2, 1, 1, 0},
-		[7]int{0, 0, 1, 1, 2, 2, 2},
+	unfinishedGame := [NumRows][NumColumns]int8{
+		[7]int8{0, 2, 0, 2, 0, 0, 0},
+		[7]int8{0, 0, 2, 2, 1, 1, 1},
+		[7]int8{0, 0, 1, 1, 2, 2, 2},
+		[7]int8{0, 0, 2, 1, 2, 1, 0},
+		[7]int8{0, 0, 0, 2, 1, 1, 0},
+		[7]int8{0, 0, 1, 1, 2, 2, 2},
 	}
 	if GameOver(unfinishedGame) {
 		t.Errorf("Game was marked over, but wasn't over")
@@ -118,22 +118,22 @@ func TestGameOver(t *testing.T) {
 }
 
 func TestApplyMoveToBoard(t *testing.T) {
-	emptyBoard := [NumRows][NumColumns]int{
-		[7]int{0, 0, 0, 0, 0, 0, 0},
-		[7]int{0, 0, 0, 0, 0, 0, 0},
-		[7]int{0, 0, 0, 0, 0, 0, 0},
-		[7]int{0, 0, 0, 0, 0, 0, 0},
-		[7]int{0, 0, 0, 0, 0, 0, 0},
-		[7]int{0, 0, 0, 0, 0, 0, 0},
+	emptyBoard := [NumRows][NumColumns]int8{
+		[7]int8{0, 0, 0, 0, 0, 0, 0},
+		[7]int8{0, 0, 0, 0, 0, 0, 0},
+		[7]int8{0, 0, 0, 0, 0, 0, 0},
+		[7]int8{0, 0, 0, 0, 0, 0, 0},
+		[7]int8{0, 0, 0, 0, 0, 0, 0},
+		[7]int8{0, 0, 0, 0, 0, 0, 0},
 	}
 
-	oneMoveBoard := [NumRows][NumColumns]int{
-		[7]int{0, 0, 0, 0, 0, 0, 0},
-		[7]int{0, 0, 0, 0, 0, 0, 0},
-		[7]int{0, 0, 0, 0, 0, 0, 0},
-		[7]int{0, 0, 0, 0, 0, 0, 0},
-		[7]int{0, 0, 0, 0, 0, 0, 0},
-		[7]int{0, 0, 0, 0, 0, 0, 1},
+	oneMoveBoard := [NumRows][NumColumns]int8{
+		[7]int8{0, 0, 0, 0, 0, 0, 0},
+		[7]int8{0, 0, 0, 0, 0, 0, 0},
+		[7]int8{0, 0, 0, 0, 0, 0, 0},
+		[7]int8{0, 0, 0, 0, 0, 0, 0},
+		[7]int8{0, 0, 0, 0, 0, 0, 0},
+		[7]int8{0, 0, 0, 0, 0, 0, 1},
 	}
 
 	newBoard, _ := ApplyMoveToBoard(6, 1, &emptyBoard)
@@ -141,13 +141,13 @@ func TestApplyMoveToBoard(t *testing.T) {
 		t.Errorf("New board does not equal board with expected move")
 	}
 
-	columnFullBoard := [NumRows][NumColumns]int{
-		[7]int{1, 0, 0, 0, 0, 0, 0},
-		[7]int{1, 0, 0, 0, 0, 0, 0},
-		[7]int{1, 0, 0, 0, 0, 0, 0},
-		[7]int{1, 0, 0, 0, 0, 0, 0},
-		[7]int{1, 0, 0, 0, 0, 0, 0},
-		[7]int{1, 0, 0, 0, 0, 0, 0},
+	columnFullBoard := [NumRows][NumColumns]int8{
+		[7]int8{1, 0, 0, 0, 0, 0, 0},
+		[7]int8{1, 0, 0, 0, 0, 0, 0},
+		[7]int8{1, 0, 0, 0, 0, 0, 0},
+		[7]int8{1, 0, 0, 0, 0, 0, 0},
+		[7]int8{1, 0, 0, 0, 0, 0, 0},
+		[7]int8{1, 0, 0, 0, 0, 0, 0},
 	}
 
 	_, err := ApplyMoveToBoard(0, 1, &columnFullBoard)
@@ -167,13 +167,13 @@ func TestApplyMoveToBoard(t *testing.T) {
 }
 
 func TestStringBoard(t *testing.T) {
-	fullBoard := [NumRows][NumColumns]int{
-		[7]int{1, 2, 1, 2, 0, 0, 0},
-		[7]int{2, 2, 2, 2, 2, 2, 2},
-		[7]int{1, 2, 2, 2, 2, 2, 2},
-		[7]int{1, 2, 2, 2, 2, 2, 2},
-		[7]int{1, 2, 2, 2, 2, 2, 2},
-		[7]int{1, 2, 2, 2, 2, 2, 2},
+	fullBoard := [NumRows][NumColumns]int8{
+		[7]int8{1, 2, 1, 2, 0, 0, 0},
+		[7]int8{2, 2, 2, 2, 2, 2, 2},
+		[7]int8{1, 2, 2, 2, 2, 2, 2},
+		[7]int8{1, 2, 2, 2, 2, 2, 2},
+		[7]int8{1, 2, 2, 2, 2, 2, 2},
+		[7]int8{1, 2, 2, 2, 2, 2, 2},
 	}
 	expectedBoard := [NumRows][NumColumns]string{
 		[7]string{"R", "B", "R", "B", "", "", ""},
