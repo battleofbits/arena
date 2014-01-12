@@ -9,6 +9,7 @@ import (
 )
 
 func TestNullTimeJSON(t *testing.T) {
+	t.Parallel()
 	foo := time.Now()
 	s := NullTime{
 		Valid: true,
@@ -24,6 +25,7 @@ func TestNullTimeJSON(t *testing.T) {
 }
 
 func TestNullTimeNullJSON(t *testing.T) {
+	t.Parallel()
 	foo := time.Now()
 	s := NullTime{
 		Valid: false,
@@ -37,6 +39,7 @@ func TestNullTimeNullJSON(t *testing.T) {
 }
 
 func TestNullStringFullRound(t *testing.T) {
+	t.Parallel()
 	s := NullString{
 		Valid:  true,
 		String: "foo",

@@ -5,6 +5,7 @@ import (
 )
 
 func TestBoardFull(t *testing.T) {
+	t.Parallel()
 	fullBoard := [NumRows][NumColumns]int8{
 		[7]int8{2, 2, 2, 2, 2, 2, 2},
 		[7]int8{2, 2, 2, 2, 2, 2, 2},

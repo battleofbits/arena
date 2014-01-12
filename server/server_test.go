@@ -13,26 +13,8 @@ import (
 	"time"
 )
 
-// setup sets up a test HTTP server along with a github.Client that is
-// configured to talk to that test server.  Tests should register handlers on
-// mux which provide mock responses for the API method being tested.
-//func setup() {
-//// test server
-//mux = http.NewServeMux()
-//server = httptest.NewServer(mux)
-
-//// github client configured to use test server
-//url, _ := url.Parse(server.URL)
-//client.BaseURL = url
-//client.UploadURL = url
-//}
-
-// teardown closes the test HTTP server.
-//func teardown() {
-//server.Close()
-//}
-
 func TestMoves(t *testing.T) {
+	t.Parallel()
 	r := mux.NewRouter()
 	r.HandleFunc("/games/four-up/matches/{match}/moves", MovesHandler)
 	req, _ := http.NewRequest("GET", "http://localhost/games/four-up/matches/3/moves", nil)
@@ -81,6 +63,7 @@ func reassignMoveGetter(to func(int) []*Move) {
 }
 
 func TestEmptyMatches(t *testing.T) {
+	t.Parallel()
 	r := mux.NewRouter()
 	r.HandleFunc("/games/four-up/matches", MatchesHandler)
 	req, _ := http.NewRequest("GET", "http://localhost/games/four-up/matches", nil)
@@ -109,6 +92,7 @@ type MatchResponses struct {
 }
 
 func TestOneMatch(t *testing.T) {
+	t.Parallel()
 	r := mux.NewRouter()
 	r.HandleFunc("/games/four-up/matches", MatchesHandler)
 	req, _ := http.NewRequest("GET", "http://localhost/games/four-up/matches", nil)
@@ -138,7 +122,9 @@ func TestOneMatch(t *testing.T) {
 	}
 	mr := response.Matches[0]
 	fmt.Println(mr.Winner)
-	t.Errorf("foo bar")
+	if mr.Id != 3 {
+		t.Errorf("id should have been 3, was %d", mr.Id)
+	}
 }
 
 func reassignMatchGetter(to func() ([]*arena.FourUpMatch, error)) {
@@ -187,72 +173,3 @@ func TestSendInviteError(t *testing.T) {
 		}
 	}
 }
-
-//func buildTestRequest(method string, path string, body string, headers map[string][]string, cookies []*http.Cookie) *http.Request {
-//host := "127.0.0.1"
-//port := "80"
-//rawurl := "http://" + host + ":" + port + path
-//url_, _ := url.Parse(rawurl)
-//proto := "HTTP/1.1"
-
-//if headers == nil {
-//headers = map[string][]string{}
-//}
-
-//headers["User-Agent"] = []string{"web.go test"}
-//if method == "POST" {
-//headers["Content-Length"] = []string{fmt.Sprintf("%d", len(body))}
-//if headers["Content-Type"] == nil {
-//headers["Content-Type"] = []string{"text/plain"}
-//}
-//}
-
-//req := http.Request{Method: method,
-//URL:    url_,
-//Proto:  proto,
-//Host:   host,
-//Header: http.Header(headers),
-//Body:   ioutil.NopCloser(bytes.NewBufferString(body)),
-//}
-
-//for _, cookie := range cookies {
-//req.AddCookie(cookie)
-//}
-//return &req
-//}
-
-//func TestMovesList(t *testing.T) {
-//// XXX Need some way to reset the database, or similar, here, so you can
-//// actually test interesting things about the list response
-////go doServer()
-//resp, err := http.Get("http://0.0.0.0:9999/games/four-up/matches/1/moves")
-//checkError(err)
-//defer resp.Body.Close()
-//body, err := ioutil.ReadAll(resp.Body)
-//fmt.Println(string(body))
-//t.Errorf("XXX: this fails the moves test so you can see the console output")
-//}
-
-//func TestMovesList(t *testing.T) {
-//// XXX Need some way to reset the database, or similar, here, so you can
-//// actually test interesting things about the list response
-//go doServer()
-//resp, err := http.Get("http://0.0.0.0:9999/games/four-up/matches/1/moves")
-//checkError(err)
-//defer resp.Body.Close()
-//body, err := ioutil.ReadAll(resp.Body)
-//fmt.Println(string(body))
-//t.Errorf("XXX: this fails the moves test so you can see the console output")
-//}
-
-//func TestPlayersList(t *testing.T) {
-//// XXX Need some way to reset the database, or similar, here, so you can
-//// actually test interesting things about the list response
-////go doServer()
-//resp, err := http.Get("http://0.0.0.0:9999/players")
-//checkError(err)
-//defer resp.Body.Close()
-//body, err := ioutil.ReadAll(resp.Body)
-//fmt.Println(string(body))
-//t.Errorf("XXX: this fails the test so you can see the console output")
-//}

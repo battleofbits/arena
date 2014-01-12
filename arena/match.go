@@ -55,6 +55,26 @@ func (n NullTime) MarshalJSON() ([]byte, error) {
 	}
 }
 
+func (n *NullTime) UnmarshalJSON(data []byte) error {
+	if string(data) == "null" {
+		*n = NullTime{
+			Valid: false,
+		}
+		return nil
+	} else {
+		var out time.Time
+		err := json.Unmarshal(data, &out)
+		if err != nil {
+			return err
+		}
+		*n = NullTime{
+			Time:  out,
+			Valid: true,
+		}
+		return nil
+	}
+}
+
 type FourUpMatch struct {
 	Id          int64
 	Started     time.Time
