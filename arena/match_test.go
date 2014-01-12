@@ -7,7 +7,7 @@ import (
 	"time"
 )
 
-func TestNullTime(t *testing.T) {
+func TestNullTimeJSON(t *testing.T) {
 	foo := time.Now()
 	s := NullTime{
 		Valid: true,
@@ -18,6 +18,16 @@ func TestNullTime(t *testing.T) {
 	fmt.Println(string(bits))
 	expected, _ := foo.MarshalJSON()
 	if !bytes.Equal(bits, expected) {
+		t.Errorf("expected json marshal to be %s, was %s", string(bits), string(expected))
+	}
+
+	s = NullTime{
+		Valid: false,
+		Time:  foo,
+	}
+	bits, err = s.MarshalJSON()
+	checkError(err)
+	if !bytes.Equal(bits, []byte{}) {
 		t.Errorf("expected json marshal to be %s, was %s", string(bits), string(expected))
 	}
 }
