@@ -35,8 +35,10 @@ var PlayerHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request
 	fmt.Fprint(w, Response{"players": []*arena.Player{player}})
 })
 
+var matchGetter = arena.GetMatches
+
 var MatchesHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-	matches, err := arena.GetMatches()
+	matches, err := matchGetter()
 	checkError(err)
 	if len(matches) == 0 {
 		// json.Marshal returns null instead of an empty list for a pointer
@@ -174,6 +176,9 @@ var InvitationsHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Re
 		arena.StartMatch(mtch, invitedPlayer, requestingPlayer)
 	}
 })
+
+// This is reassigned in tests
+var moveGetter = getMoves
 
 var MovesHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 	idStr := mux.Vars(r)["match"]

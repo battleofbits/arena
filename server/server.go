@@ -34,9 +34,6 @@ type InviteRequest struct {
 	FirstMove        string `json:"first_move"`
 }
 
-// This is reassigned in tests
-var moveGetter = getMoves
-
 func getMoves(moveId int) []*Move {
 	db := arena.GetConnection()
 	// XXX do a join here to get player name

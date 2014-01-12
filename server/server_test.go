@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/battleofbits/arena/arena"
 	"github.com/gorilla/mux"
 	"net/http"
 	"net/http/httptest"
@@ -76,6 +77,30 @@ func TestMoves(t *testing.T) {
 
 func reassignMoveGetter(to func(int) []*Move) {
 	moveGetter = to
+}
+
+func TestEmptyMatches(t *testing.T) {
+	r := mux.NewRouter()
+	r.HandleFunc("/games/four-up/matches", MatchesHandler)
+	req, _ := http.NewRequest("GET", "http://localhost/games/four-up/matches", nil)
+
+	matchGetter = func() ([]*arena.FourUpMatch, error) {
+		return []*arena.FourUpMatch{}, nil
+	}
+
+	defer reassignMatchGetter(arena.GetMatches)
+
+	resp := httptest.NewRecorder()
+	var response Response
+	r.ServeHTTP(resp, req)
+	err := json.Unmarshal(resp.Body.Bytes(), &response)
+	if err != nil {
+		t.Fatalf(err.Error())
+	}
+}
+
+func reassignMatchGetter(to func() ([]*arena.FourUpMatch, error)) {
+	matchGetter = to
 }
 
 func TestSendInviteOK(t *testing.T) {
