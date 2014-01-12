@@ -58,17 +58,6 @@ func getMoves(moveId int) []*Move {
 	return moves
 }
 
-type MatchResponse struct {
-	Id          int64                                  `json:"id"`
-	CurrentMove string                                 `json:"current_move"`
-	Winner      *NullableString                        `json:"winner"`
-	RedPlayer   string                                 `json:"red_player"`
-	BlackPlayer string                                 `json:"black_player"`
-	Started     time.Time                              `json:"started"`
-	Board       *[arena.NumRows][arena.NumColumns]int8 `json:"board"`
-	Finished    *time.Time                             `json:"finished"`
-}
-
 // Sends an invitation to the invite URL, waits for a response, parses it, etc.
 func SendInvite(inviteUrl string, game string, firstMove string) error {
 	inviteStruct := &InviteRequest{
@@ -95,19 +84,6 @@ func SendInvite(inviteUrl string, game string, firstMove string) error {
 }
 
 type Response map[string]interface{}
-
-type NullableString struct {
-	stringValue string
-	isNil       bool
-}
-
-func (n NullableString) MarshalJSON() ([]byte, error) {
-	if n.isNil == true {
-		return []byte{}, nil
-	} else {
-		return []byte(n.stringValue), nil
-	}
-}
 
 func (r Response) String() (s string) {
 	b, err := json.Marshal(r)
@@ -155,6 +131,7 @@ func DoServer() *mux.Router {
 	r := mux.NewRouter()
 	r.Handle("/players", headerMiddleware(PlayersHandler)).Methods("GET")
 	r.Handle("/players/{player}", headerMiddleware(PlayerHandler)).Methods("GET")
+	r.Handle("/games/four-up/matches", headerMiddleware(MatchesHandler)).Methods("GET")
 	r.Handle("/games/four-up/matches/{match}/moves",
 		headerMiddleware(MovesHandler)).Methods("GET")
 	r.Handle("/players/{player}/invitations",

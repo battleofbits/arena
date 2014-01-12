@@ -2,10 +2,37 @@
 package arena
 
 import (
+	"database/sql"
 	"encoding/json"
 	"fmt"
 	"time"
 )
+
+//type NullableString struct {
+//stringValue string
+//isNil       bool
+//}
+
+type NullableTime struct {
+	TimeValue time.Time
+	IsNil     bool
+}
+
+//func (n NullableString) MarshalJSON() ([]byte, error) {
+//if n.isNil == true {
+//return []byte{}, nil
+//} else {
+//return []byte(n.stringValue), nil
+//}
+//}
+
+func (n NullableTime) MarshalJSON() ([]byte, error) {
+	if n.IsNil == true {
+		return []byte{}, nil
+	} else {
+		return json.Marshal(n.TimeValue)
+	}
+}
 
 type FourUpMatch struct {
 	Id          int64
@@ -15,9 +42,52 @@ type FourUpMatch struct {
 	BlackPlayer *Player
 	// Whose turn is it
 	CurrentPlayer *Player
-	Winner        int64
+	Winner        *Player
 	Board         *[NumRows][NumColumns]int8
 	MoveId        int
+}
+
+// public facing thingy
+type MatchResponse struct {
+	Id          int64                      `json:"id"`
+	CurrentMove string                     `json:"current_move"`
+	Winner      *sql.NullString            `json:"winner"`
+	RedPlayer   string                     `json:"red_player"`
+	BlackPlayer string                     `json:"black_player"`
+	Board       *[NumRows][NumColumns]int8 `json:"board"`
+	Started     *NullableTime              `json:"started"`
+	Finished    *NullableTime              `json:"finished"`
+}
+
+func (m *FourUpMatch) MarshalJSON() ([]byte, error) {
+	winnerString := &sql.NullString{
+		Valid: true,
+	}
+	if m.Winner != nil {
+		if m.Winner == m.RedPlayer {
+			winnerString.String = m.RedPlayer.Name
+		} else {
+			winnerString.String = m.BlackPlayer.Name
+		}
+	}
+	startNullable := &NullableTime{
+		IsNil:     false,
+		TimeValue: m.Started,
+	}
+	finishedNullable := &NullableTime{
+		IsNil:     false,
+		TimeValue: m.Finished,
+	}
+	return json.Marshal(&MatchResponse{
+		Id:          m.Id,
+		CurrentMove: m.CurrentPlayer.Name,
+		Winner:      winnerString,
+		Started:     startNullable,
+		Finished:    finishedNullable,
+		Board:       m.Board,
+		RedPlayer:   m.RedPlayer.Name,
+		BlackPlayer: m.BlackPlayer.Name,
+	})
 }
 
 func (m *FourUpMatch) GetCurrentTurnColor() int8 {
@@ -73,4 +143,45 @@ func UpdateMatch(match *FourUpMatch) error {
 	query := "UPDATE fourup_matches SET board = $1 WHERE id = $2"
 	_, err = db.Exec(query, string(jsonBoard), match.Id)
 	return err
+}
+
+func GetMatches() ([]*FourUpMatch, error) {
+	db := GetConnection()
+	defer db.Close()
+	query := "select red_players.name as red_player, " +
+		"black_players.name as black_player, " +
+		"winners.name as winner, " +
+		"fourup_matches.id, fourup_matches.started " +
+		"from fourup_matches " +
+		"inner join players as red_players on red_players.id=fourup_matches.player_red " +
+		"inner join players as black_players on black_players.id=fourup_matches.player_black " +
+		"inner join players as winners on winners.id=fourup_matches.winner order by started limit 50"
+	rows, err := db.Query(query)
+	if err != nil {
+		return nil, err
+	}
+	var matches []*FourUpMatch
+	for rows.Next() {
+		var m FourUpMatch
+		var redName string
+		var blackName string
+		var winnerName string
+		err = rows.Scan(&redName, &blackName, &winnerName, &m.Id, &m.Started)
+		if err != nil {
+			return nil, err
+		}
+		m.RedPlayer = &Player{
+			Name: redName,
+		}
+		m.BlackPlayer = &Player{
+			Name: blackName,
+		}
+		if winnerName == redName {
+			m.Winner = m.RedPlayer
+		} else if winnerName == blackName {
+			m.Winner = m.BlackPlayer
+		}
+		matches = append(matches, &m)
+	}
+	return matches, nil
 }

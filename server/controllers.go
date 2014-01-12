@@ -35,6 +35,13 @@ var PlayerHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request
 	fmt.Fprint(w, Response{"players": []*arena.Player{player}})
 })
 
+var MatchesHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	players, err := arena.GetMatches()
+	checkError(err)
+	fmt.Fprint(w, Response{"matches": players})
+})
+
+// Handle an invitation to play a new game
 var InvitationsHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {
@@ -139,17 +146,24 @@ var InvitationsHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Re
 			return
 		}
 		w.WriteHeader(http.StatusCreated)
-		mr := &MatchResponse{
+		startNullable := &arena.NullableTime{
+			IsNil:     false,
+			TimeValue: mtch.Started,
+		}
+		finishedNullable := &arena.NullableTime{
+			IsNil: true,
+		}
+		mr := &arena.MatchResponse{
 			Id:          mtch.Id,
 			CurrentMove: mtch.CurrentPlayer.Name,
 			Winner:      nil,
-			Started:     mtch.Started,
-			Finished:    nil,
+			Started:     startNullable,
+			Finished:    finishedNullable,
 			Board:       mtch.Board,
 			RedPlayer:   mtch.RedPlayer.Name,
 			BlackPlayer: mtch.BlackPlayer.Name,
 		}
-		fmt.Fprint(w, Response{"matches": []*MatchResponse{mr}})
+		fmt.Fprint(w, Response{"matches": []*arena.MatchResponse{mr}})
 		// XXX check ordering here
 		arena.StartMatch(mtch, invitedPlayer, requestingPlayer)
 	}
