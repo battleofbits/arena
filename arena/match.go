@@ -8,14 +8,9 @@ import (
 	"time"
 )
 
-//type NullableString struct {
-//stringValue string
-//isNil       bool
-//}
-
-type NullableTime struct {
-	TimeValue time.Time
-	IsNil     bool
+type NullTime struct {
+	Time  time.Time
+	Valid bool
 }
 
 //func (n NullableString) MarshalJSON() ([]byte, error) {
@@ -26,11 +21,11 @@ type NullableTime struct {
 //}
 //}
 
-func (n NullableTime) MarshalJSON() ([]byte, error) {
-	if n.IsNil == true {
+func (n NullTime) MarshalJSON() ([]byte, error) {
+	if n.Valid {
 		return []byte{}, nil
 	} else {
-		return json.Marshal(n.TimeValue)
+		return json.Marshal(n.Time)
 	}
 }
 
@@ -55,8 +50,8 @@ type MatchResponse struct {
 	RedPlayer   string                     `json:"red_player"`
 	BlackPlayer string                     `json:"black_player"`
 	Board       *[NumRows][NumColumns]int8 `json:"board"`
-	Started     *NullableTime              `json:"started"`
-	Finished    *NullableTime              `json:"finished"`
+	Started     *NullTime                  `json:"started"`
+	Finished    *NullTime                  `json:"finished"`
 }
 
 func (m *FourUpMatch) MarshalJSON() ([]byte, error) {
@@ -70,13 +65,13 @@ func (m *FourUpMatch) MarshalJSON() ([]byte, error) {
 			winnerString.String = m.BlackPlayer.Name
 		}
 	}
-	startNullable := &NullableTime{
-		IsNil:     false,
-		TimeValue: m.Started,
+	startNullable := &NullTime{
+		Valid: true,
+		Time:  m.Started,
 	}
-	finishedNullable := &NullableTime{
-		IsNil:     false,
-		TimeValue: m.Finished,
+	finishedNullable := &NullTime{
+		Valid: true,
+		Time:  m.Finished,
 	}
 	return json.Marshal(&MatchResponse{
 		Id:          m.Id,

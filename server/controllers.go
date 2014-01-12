@@ -36,9 +36,15 @@ var PlayerHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request
 })
 
 var MatchesHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-	players, err := arena.GetMatches()
+	matches, err := arena.GetMatches()
 	checkError(err)
-	fmt.Fprint(w, Response{"matches": players})
+	if len(matches) == 0 {
+		// json.Marshal returns null instead of an empty list for a pointer
+		// with no data.
+		fmt.Fprint(w, Response{"matches": []string{}})
+	} else {
+		fmt.Fprint(w, Response{"matches": matches})
+	}
 })
 
 // Handle an invitation to play a new game
@@ -146,12 +152,12 @@ var InvitationsHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Re
 			return
 		}
 		w.WriteHeader(http.StatusCreated)
-		startNullable := &arena.NullableTime{
-			IsNil:     false,
-			TimeValue: mtch.Started,
+		startNullable := &arena.NullTime{
+			Valid: true,
+			Time:  mtch.Started,
 		}
-		finishedNullable := &arena.NullableTime{
-			IsNil: true,
+		finishedNullable := &arena.NullTime{
+			Valid: false,
 		}
 		mr := &arena.MatchResponse{
 			Id:          mtch.Id,
