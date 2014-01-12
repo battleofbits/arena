@@ -5,6 +5,7 @@ import (
 )
 
 func TestSetHref(t *testing.T) {
+	t.Parallel()
 	p := &Player{
 		Name: "foobar",
 	}

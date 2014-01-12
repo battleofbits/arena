@@ -6,6 +6,7 @@ import (
 )
 
 func TestGetMatchHref(t *testing.T) {
+	t.Parallel()
 	url := "https://battleofbits.com/games/four-up/matches/1"
 	if getMatchHref(1) != url {
 		t.Errorf(fmt.Sprintf("Expected url %s but got %s", url, getMatchHref(1)))
@@ -13,6 +14,7 @@ func TestGetMatchHref(t *testing.T) {
 }
 
 func TestSerializeTurn(t *testing.T) {
+	t.Parallel()
 	red := &Player{
 		Name:     "kevin",
 		Username: "kb",
