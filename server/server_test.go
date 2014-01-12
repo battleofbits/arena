@@ -14,7 +14,6 @@ import (
 )
 
 func TestMoves(t *testing.T) {
-	t.Parallel()
 	r := mux.NewRouter()
 	r.HandleFunc("/games/four-up/matches/{match}/moves", MovesHandler)
 	req, _ := http.NewRequest("GET", "http://localhost/games/four-up/matches/3/moves", nil)
@@ -63,7 +62,6 @@ func reassignMoveGetter(to func(int) []*Move) {
 }
 
 func TestEmptyMatches(t *testing.T) {
-	t.Parallel()
 	r := mux.NewRouter()
 	r.HandleFunc("/games/four-up/matches", MatchesHandler)
 	req, _ := http.NewRequest("GET", "http://localhost/games/four-up/matches", nil)
@@ -92,7 +90,6 @@ type MatchResponses struct {
 }
 
 func TestOneMatch(t *testing.T) {
-	t.Parallel()
 	r := mux.NewRouter()
 	r.HandleFunc("/games/four-up/matches", MatchesHandler)
 	req, _ := http.NewRequest("GET", "http://localhost/games/four-up/matches", nil)
@@ -132,6 +129,7 @@ func reassignMatchGetter(to func() ([]*arena.FourUpMatch, error)) {
 }
 
 func TestSendInviteOK(t *testing.T) {
+	t.Parallel()
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != "POST" {
 			t.Errorf("expected method to be POST, instead was %s", r.Method)

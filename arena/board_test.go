@@ -32,6 +32,7 @@ func TestBoardFull(t *testing.T) {
 }
 
 func TestGameOver(t *testing.T) {
+	t.Parallel()
 
 	winThirdVertical := [NumRows][NumColumns]int8{
 		[7]int8{0, 0, 0, 0, 0, 0, 1},
@@ -120,6 +121,7 @@ func TestGameOver(t *testing.T) {
 }
 
 func TestApplyMoveToBoard(t *testing.T) {
+	t.Parallel()
 	emptyBoard := [NumRows][NumColumns]int8{
 		[7]int8{0, 0, 0, 0, 0, 0, 0},
 		[7]int8{0, 0, 0, 0, 0, 0, 0},
@@ -169,6 +171,7 @@ func TestApplyMoveToBoard(t *testing.T) {
 }
 
 func TestStringBoard(t *testing.T) {
+	t.Parallel()
 	fullBoard := [NumRows][NumColumns]int8{
 		[7]int8{1, 2, 1, 2, 0, 0, 0},
 		[7]int8{2, 2, 2, 2, 2, 2, 2},
