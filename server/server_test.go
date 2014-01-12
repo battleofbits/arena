@@ -104,6 +104,10 @@ func TestEmptyMatches(t *testing.T) {
 	}
 }
 
+type MatchResponses struct {
+	Matches []arena.MatchResponse `json:"matches"`
+}
+
 func TestOneMatch(t *testing.T) {
 	r := mux.NewRouter()
 	r.HandleFunc("/games/four-up/matches", MatchesHandler)
@@ -122,17 +126,19 @@ func TestOneMatch(t *testing.T) {
 	resp := httptest.NewRecorder()
 	r.ServeHTTP(resp, req)
 
-	var response Response
+	var response MatchResponses
 	bits := resp.Body.Bytes()
 	fmt.Println(string(bits))
 	err := json.Unmarshal(bits, &response)
 	if err != nil {
 		t.Fatalf(err.Error())
 	}
-	matches := response["matches"].([]interface{})
-	if len(matches) != 0 {
-		t.Fatalf("match length should have been 0, was %d", len(matches))
+	if len(response.Matches) != 1 {
+		t.Fatalf("match length should have been 0, was %d", len(response.Matches))
 	}
+	mr := response.Matches[0]
+	fmt.Println(mr.Winner)
+	t.Errorf("foo bar")
 }
 
 func reassignMatchGetter(to func() ([]*arena.FourUpMatch, error)) {

@@ -21,6 +21,27 @@ func (n NullString) MarshalJSON() ([]byte, error) {
 	}
 }
 
+func (n *NullString) UnmarshalJSON(data []byte) error {
+	s := string(data)
+	if s == "null" {
+		*n = NullString{
+			Valid: false,
+		}
+		return nil
+	} else {
+		var out string
+		err := json.Unmarshal(data, &out)
+		if err != nil {
+			return err
+		}
+		*n = NullString{
+			String: out,
+			Valid:  true,
+		}
+		return nil
+	}
+}
+
 type NullTime struct {
 	Time  time.Time
 	Valid bool
