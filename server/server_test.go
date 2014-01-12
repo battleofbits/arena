@@ -7,6 +7,7 @@ import (
 	"github.com/gorilla/mux"
 	"net/http"
 	"net/http/httptest"
+	//"reflect"
 	"strings"
 	"testing"
 	"time"
@@ -88,6 +89,9 @@ func TestEmptyMatches(t *testing.T) {
 		return []*arena.FourUpMatch{}, nil
 	}
 
+	m := make(map[string]interface{})
+	m["matches"] = []string{}
+
 	defer reassignMatchGetter(arena.GetMatches)
 
 	resp := httptest.NewRecorder()
@@ -96,6 +100,10 @@ func TestEmptyMatches(t *testing.T) {
 	err := json.Unmarshal(resp.Body.Bytes(), &response)
 	if err != nil {
 		t.Fatalf(err.Error())
+	}
+	matches := response["matches"].([]interface{})
+	if len(matches) != 0 {
+		t.Fatalf("match length should have been 0, was %d", len(matches))
 	}
 }
 

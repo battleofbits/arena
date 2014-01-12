@@ -8,6 +8,7 @@ import (
 	"math/rand"
 	"net/http"
 	"strconv"
+	"time"
 )
 
 var PlayersHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -160,6 +161,7 @@ var InvitationsHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Re
 		}
 		finishedNullable := &arena.NullTime{
 			Valid: false,
+			Time:  time.Now(),
 		}
 		mr := &arena.MatchResponse{
 			Id:          mtch.Id,

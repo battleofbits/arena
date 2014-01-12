@@ -22,7 +22,7 @@ type NullTime struct {
 //}
 
 func (n NullTime) MarshalJSON() ([]byte, error) {
-	if n.Valid {
+	if !n.Valid {
 		return []byte{}, nil
 	} else {
 		return json.Marshal(n.Time)
