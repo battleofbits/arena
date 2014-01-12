@@ -8,7 +8,6 @@ import (
 	"math/rand"
 	"net/http"
 	"strconv"
-	"time"
 )
 
 var PlayersHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -40,7 +39,11 @@ var matchGetter = arena.GetMatches
 
 var MatchesHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 	matches, err := matchGetter()
-	checkError(err)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		fmt.Println(err.Error())
+		fmt.Fprint(w, Response{"error": "We experienced an error. Please try again"})
+	}
 	if len(matches) == 0 {
 		// json.Marshal returns null instead of an empty list for a pointer
 		// with no data.
@@ -161,7 +164,6 @@ var InvitationsHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Re
 		}
 		finishedNullable := &arena.NullTime{
 			Valid: false,
-			Time:  time.Now(),
 		}
 		mr := &arena.MatchResponse{
 			Id:          mtch.Id,

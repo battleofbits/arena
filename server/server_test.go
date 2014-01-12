@@ -89,15 +89,43 @@ func TestEmptyMatches(t *testing.T) {
 		return []*arena.FourUpMatch{}, nil
 	}
 
-	m := make(map[string]interface{})
-	m["matches"] = []string{}
-
 	defer reassignMatchGetter(arena.GetMatches)
 
 	resp := httptest.NewRecorder()
 	var response Response
 	r.ServeHTTP(resp, req)
 	err := json.Unmarshal(resp.Body.Bytes(), &response)
+	if err != nil {
+		t.Fatalf(err.Error())
+	}
+	matches := response["matches"].([]interface{})
+	if len(matches) != 0 {
+		t.Fatalf("match length should have been 0, was %d", len(matches))
+	}
+}
+
+func TestOneMatch(t *testing.T) {
+	r := mux.NewRouter()
+	r.HandleFunc("/games/four-up/matches", MatchesHandler)
+	req, _ := http.NewRequest("GET", "http://localhost/games/four-up/matches", nil)
+
+	match := &arena.FourUpMatch{
+		Id:     3,
+		Winner: nil,
+	}
+	matchGetter = func() ([]*arena.FourUpMatch, error) {
+		return []*arena.FourUpMatch{match}, nil
+	}
+
+	defer reassignMatchGetter(arena.GetMatches)
+
+	resp := httptest.NewRecorder()
+	r.ServeHTTP(resp, req)
+
+	var response Response
+	bits := resp.Body.Bytes()
+	fmt.Println(string(bits))
+	err := json.Unmarshal(bits, &response)
 	if err != nil {
 		t.Fatalf(err.Error())
 	}

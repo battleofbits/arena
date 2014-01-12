@@ -2,24 +2,29 @@
 package arena
 
 import (
-	"database/sql"
 	"encoding/json"
 	"fmt"
 	"time"
 )
 
+// Exactly the same interface as sql.NullString but with a MarshalJSON method
+type NullString struct {
+	String string
+	Valid  bool
+}
+
+func (n NullString) MarshalJSON() ([]byte, error) {
+	if !n.Valid {
+		return []byte{}, nil
+	} else {
+		return json.Marshal(n.String)
+	}
+}
+
 type NullTime struct {
 	Time  time.Time
 	Valid bool
 }
-
-//func (n NullableString) MarshalJSON() ([]byte, error) {
-//if n.isNil == true {
-//return []byte{}, nil
-//} else {
-//return []byte(n.stringValue), nil
-//}
-//}
 
 func (n NullTime) MarshalJSON() ([]byte, error) {
 	if !n.Valid {
@@ -46,7 +51,7 @@ type FourUpMatch struct {
 type MatchResponse struct {
 	Id          int64                      `json:"id"`
 	CurrentMove string                     `json:"current_move"`
-	Winner      *sql.NullString            `json:"winner"`
+	Winner      *NullString                `json:"winner"`
 	RedPlayer   string                     `json:"red_player"`
 	BlackPlayer string                     `json:"black_player"`
 	Board       *[NumRows][NumColumns]int8 `json:"board"`
@@ -55,7 +60,7 @@ type MatchResponse struct {
 }
 
 func (m *FourUpMatch) MarshalJSON() ([]byte, error) {
-	winnerString := &sql.NullString{
+	winnerString := &NullString{
 		Valid: true,
 	}
 	if m.Winner != nil {
@@ -73,15 +78,25 @@ func (m *FourUpMatch) MarshalJSON() ([]byte, error) {
 		Valid: true,
 		Time:  m.Finished,
 	}
+	var currentPlayerName, redPlayerName, blackPlayerName string
+	if m.CurrentPlayer != nil {
+		currentPlayerName = m.CurrentPlayer.Name
+	}
+	if m.RedPlayer != nil {
+		redPlayerName = m.RedPlayer.Name
+	}
+	if m.BlackPlayer != nil {
+		blackPlayerName = m.BlackPlayer.Name
+	}
 	return json.Marshal(&MatchResponse{
 		Id:          m.Id,
-		CurrentMove: m.CurrentPlayer.Name,
+		CurrentMove: currentPlayerName,
 		Winner:      winnerString,
 		Started:     startNullable,
 		Finished:    finishedNullable,
 		Board:       m.Board,
-		RedPlayer:   m.RedPlayer.Name,
-		BlackPlayer: m.BlackPlayer.Name,
+		RedPlayer:   redPlayerName,
+		BlackPlayer: blackPlayerName,
 	})
 }
 
@@ -146,7 +161,7 @@ func GetMatches() ([]*FourUpMatch, error) {
 	query := "select red_players.name as red_player, " +
 		"black_players.name as black_player, " +
 		"winners.name as winner, " +
-		"fourup_matches.id, fourup_matches.started " +
+		"fourup_matches.id, fourup_matches.started, fourup_matches.finished " +
 		"from fourup_matches " +
 		"inner join players as red_players on red_players.id=fourup_matches.player_red " +
 		"inner join players as black_players on black_players.id=fourup_matches.player_black " +
@@ -161,7 +176,8 @@ func GetMatches() ([]*FourUpMatch, error) {
 		var redName string
 		var blackName string
 		var winnerName string
-		err = rows.Scan(&redName, &blackName, &winnerName, &m.Id, &m.Started)
+		err = rows.Scan(&redName, &blackName, &winnerName, &m.Id, &m.Started,
+			&m.Finished)
 		if err != nil {
 			return nil, err
 		}
