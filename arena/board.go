@@ -1,6 +1,7 @@
 package arena
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 )
@@ -147,6 +148,32 @@ func GetStringBoard(board *[NumRows][NumColumns]int8) [NumRows][NumColumns]strin
 	return stringBoard
 }
 
+// Convert the database representation of a board into a regular board
+func GetIntBoard(dbBoard []byte) (*[NumRows][NumColumns]int8, error) {
+	var stringBoard [NumRows][NumColumns]string
+	err := json.Unmarshal(dbBoard, &stringBoard)
+	if err != nil {
+		return nil, err
+	}
+
+	var board [NumRows][NumColumns]int8
+	for row := int8(0); row < NumRows; row++ {
+		for column := int8(0); column < NumColumns; column++ {
+			if stringBoard[row][column] == "" {
+				board[row][column] = Empty
+			} else if stringBoard[row][column] == "R" {
+				board[row][column] = Red
+			} else if stringBoard[row][column] == "B" {
+				board[row][column] = Black
+			} else {
+				panic(fmt.Sprint("invalid value ", stringBoard[row][column],
+					" for a board"))
+			}
+		}
+	}
+	return &board, nil
+}
+
 func IsBoardFull(board [NumRows][NumColumns]int8) bool {
 	// will check the top row, which is always the last to fill up.
 	for column := 0; column < NumColumns; column++ {
@@ -155,12 +182,6 @@ func IsBoardFull(board [NumRows][NumColumns]int8) bool {
 		}
 	}
 	return true
-}
-
-// Convert the database representation of a board into a regular board
-func ConvertDatabaseBoard(databaseBd string) (*[NumRows][NumColumns]int8, error) {
-	var board [NumRows][NumColumns]int8
-	return &board, nil
 }
 
 // Returns error if the move is invalid

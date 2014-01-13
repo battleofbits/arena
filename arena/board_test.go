@@ -194,11 +194,11 @@ func TestStringBoard(t *testing.T) {
 	}
 }
 
-func TestConvertDatabaseBoard(t *testing.T) {
+func TestGetIntBoard(t *testing.T) {
 	t.Parallel()
-	dbBoard := `[["B","","","R","","","B"],["R","","","B","","","R"],["R","",
-	"B","R","B","","R"],["R","R","B","R","B","R","B"],["B","R","B","B","R","B",
-	"R"],["B","R","B","B","R","B","R"]]`
+	dbBoard := []byte(`[["B","","","R","","","B"],["R","","","B","","","R"],
+	["R","","B","R","B","","R"],["R","R","B","R","B","R","B"],
+	["B","R","B","B","R","B","R"],["B","R","B","B","R","B","R"]]`)
 	expectedBoard := &[NumRows][NumColumns]int8{
 		[7]int8{Black, 0, 0, Red, 0, 0, Black},
 		[7]int8{Red, 0, 0, Black, 0, 0, Red},
@@ -207,11 +207,11 @@ func TestConvertDatabaseBoard(t *testing.T) {
 		[7]int8{Black, Red, Black, Black, Red, Black, Red},
 		[7]int8{Black, Red, Black, Black, Red, Black, Red},
 	}
-	board, err := ConvertDatabaseBoard(dbBoard)
+	board, err := GetIntBoard(dbBoard)
 	if err != nil {
 		t.Fatalf(err.Error())
 	}
-	if board != expectedBoard {
+	if *board != *expectedBoard {
 		t.Fatalf("Output board %d, didn't match expected board", board)
 	}
 }
