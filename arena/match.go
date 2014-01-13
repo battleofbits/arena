@@ -218,16 +218,17 @@ func GetMatches() ([]*FourUpMatch, error) {
 		var redName string
 		var blackName string
 		var winnerName string
-		var board []byte
+		var byteBoard []byte
 		err = rows.Scan(&redName, &blackName, &winnerName, &m.Id, &m.Started,
-			&m.Finished, &board)
+			&m.Finished, &byteBoard)
 		if err != nil {
 			return nil, err
 		}
-		err := json.Unmarshal(board, &m.Board)
+		board, err := GetIntBoard(byteBoard)
 		if err != nil {
 			return nil, err
 		}
+		m.Board = board
 		m.RedPlayer = &Player{
 			Name: redName,
 		}
