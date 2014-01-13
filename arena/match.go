@@ -101,6 +101,11 @@ type MatchResponse struct {
 	Href        string                     `json:"href"`
 }
 
+func (mr *MatchResponse) SetHref() {
+	mr.Href = fmt.Sprintf("https://battleofbits.com/games/four-up/matches/%d",
+		mr.Id)
+}
+
 func (m *FourUpMatch) MarshalJSON() ([]byte, error) {
 	winnerString := &NullString{
 		Valid: true,
@@ -130,7 +135,7 @@ func (m *FourUpMatch) MarshalJSON() ([]byte, error) {
 	if m.BlackPlayer != nil {
 		blackPlayerName = m.BlackPlayer.Name
 	}
-	return json.Marshal(&MatchResponse{
+	mr := MatchResponse{
 		Id:          m.Id,
 		CurrentMove: currentPlayerName,
 		Winner:      winnerString,
@@ -139,7 +144,9 @@ func (m *FourUpMatch) MarshalJSON() ([]byte, error) {
 		Board:       m.Board,
 		RedPlayer:   redPlayerName,
 		BlackPlayer: blackPlayerName,
-	})
+	}
+	mr.SetHref()
+	return json.Marshal(&mr)
 }
 
 func (m *FourUpMatch) GetCurrentTurnColor() int8 {
