@@ -205,51 +205,91 @@ func UpdateMatch(match *FourUpMatch) error {
 	return err
 }
 
-func GetMatches() ([]*FourUpMatch, error) {
-	db := GetConnection()
-	defer db.Close()
-	query := "select red_players.name as red_player, " +
+// dry up the query a little bit
+func getMatchQuery(singleId bool) string {
+	var where string
+	if singleId {
+		where = "WHERE fourup_matches.id = $1 "
+	} else {
+		where = " "
+	}
+	return "select red_players.name as red_player, " +
 		"black_players.name as black_player, " +
 		"winners.name as winner, " +
 		"fourup_matches.id, fourup_matches.started, fourup_matches.finished, " +
 		"fourup_matches.board " +
 		"from fourup_matches " +
-		"inner join players as red_players on red_players.id=fourup_matches.player_red " +
-		"inner join players as black_players on black_players.id=fourup_matches.player_black " +
-		"inner join players as winners on winners.id=fourup_matches.winner order by started limit 50"
+		"inner join players as red_players " +
+		"on red_players.id=fourup_matches.player_red " +
+		"inner join players as black_players " +
+		"on black_players.id=fourup_matches.player_black " +
+		"inner join players as winners " +
+		"on winners.id=fourup_matches.winner " +
+		where + "order by started limit 50"
+}
+
+func GetMatch(id int) (*FourUpMatch, error) {
+	db := GetConnection()
+	defer db.Close()
+	query := getMatchQuery(true)
+	fmt.Println(query)
+	row := db.QueryRow(query, id)
+	match, err := serializeMatch(row)
+	if err != nil {
+		return nil, err
+	}
+	return match, nil
+}
+
+type MatchScanner interface {
+	Scan(dest ...interface{}) error
+}
+
+func serializeMatch(scanner MatchScanner) (*FourUpMatch, error) {
+	var m FourUpMatch
+	var redName string
+	var blackName string
+	var winnerName string
+	var byteBoard []byte
+	err := scanner.Scan(&redName, &blackName, &winnerName, &m.Id, &m.Started,
+		&m.Finished, &byteBoard)
+	if err != nil {
+		return nil, err
+	}
+	board, err := GetIntBoard(byteBoard)
+	if err != nil {
+		return nil, err
+	}
+	m.Board = board
+	m.RedPlayer = &Player{
+		Name: redName,
+	}
+	m.BlackPlayer = &Player{
+		Name: blackName,
+	}
+	if winnerName == redName {
+		m.Winner = m.RedPlayer
+	} else if winnerName == blackName {
+		m.Winner = m.BlackPlayer
+	}
+	return &m, nil
+}
+
+func GetMatches() ([]*FourUpMatch, error) {
+	db := GetConnection()
+	defer db.Close()
+	query := getMatchQuery(false)
 	rows, err := db.Query(query)
 	if err != nil {
 		return nil, err
 	}
 	var matches []*FourUpMatch
 	for rows.Next() {
-		var m FourUpMatch
-		var redName string
-		var blackName string
-		var winnerName string
-		var byteBoard []byte
-		err = rows.Scan(&redName, &blackName, &winnerName, &m.Id, &m.Started,
-			&m.Finished, &byteBoard)
+		match, err := serializeMatch(rows)
 		if err != nil {
 			return nil, err
 		}
-		board, err := GetIntBoard(byteBoard)
-		if err != nil {
-			return nil, err
-		}
-		m.Board = board
-		m.RedPlayer = &Player{
-			Name: redName,
-		}
-		m.BlackPlayer = &Player{
-			Name: blackName,
-		}
-		if winnerName == redName {
-			m.Winner = m.RedPlayer
-		} else if winnerName == blackName {
-			m.Winner = m.BlackPlayer
-		}
-		matches = append(matches, &m)
+		matches = append(matches, match)
 	}
 	return matches, nil
 }

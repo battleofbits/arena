@@ -35,10 +35,36 @@ var PlayerHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request
 	fmt.Fprint(w, Response{"players": []*arena.Player{player}})
 })
 
-var matchGetter = arena.GetMatches
+var matchesGetter = arena.GetMatches
+var matchGetter = arena.GetMatch
+
+var MatchHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	matchId := mux.Vars(r)["match"]
+	id, err := strconv.Atoi(matchId)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		fmt.Fprint(w, Response{"error": err.Error()})
+		return
+	}
+	match, err := matchGetter(id)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			w.WriteHeader(http.StatusNotFound)
+			fmt.Fprint(w, Response{
+				"error": fmt.Sprintf("No matches with id %s", matchId),
+			})
+			return
+		} else {
+			w.WriteHeader(http.StatusBadRequest)
+			fmt.Fprint(w, Response{"error": err.Error()})
+			return
+		}
+	}
+	fmt.Fprint(w, Response{"matches": []*arena.FourUpMatch{match}})
+})
 
 var MatchesHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-	matches, err := matchGetter()
+	matches, err := matchesGetter()
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		fmt.Println(err.Error())

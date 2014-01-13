@@ -66,11 +66,11 @@ func TestEmptyMatches(t *testing.T) {
 	r.HandleFunc("/games/four-up/matches", MatchesHandler)
 	req, _ := http.NewRequest("GET", "http://localhost/games/four-up/matches", nil)
 
-	matchGetter = func() ([]*arena.FourUpMatch, error) {
+	matchesGetter = func() ([]*arena.FourUpMatch, error) {
 		return []*arena.FourUpMatch{}, nil
 	}
 
-	defer reassignMatchGetter(arena.GetMatches)
+	defer reassignMatchesGetter(arena.GetMatches)
 
 	resp := httptest.NewRecorder()
 	var response Response
@@ -98,11 +98,11 @@ func TestOneMatch(t *testing.T) {
 		Id:     3,
 		Winner: nil,
 	}
-	matchGetter = func() ([]*arena.FourUpMatch, error) {
+	matchesGetter = func() ([]*arena.FourUpMatch, error) {
 		return []*arena.FourUpMatch{match}, nil
 	}
 
-	defer reassignMatchGetter(arena.GetMatches)
+	defer reassignMatchesGetter(arena.GetMatches)
 
 	resp := httptest.NewRecorder()
 	r.ServeHTTP(resp, req)
@@ -124,8 +124,12 @@ func TestOneMatch(t *testing.T) {
 	}
 }
 
-func reassignMatchGetter(to func() ([]*arena.FourUpMatch, error)) {
+func reassignMatchGetter(to func(int) (*arena.FourUpMatch, error)) {
 	matchGetter = to
+}
+
+func reassignMatchesGetter(to func() ([]*arena.FourUpMatch, error)) {
+	matchesGetter = to
 }
 
 func TestSendInviteOK(t *testing.T) {
