@@ -53,7 +53,6 @@ func TestNullStringFullRound(t *testing.T) {
 	if err != nil {
 		t.Fatalf(err.Error())
 	}
-	fmt.Println(output)
 	if output.String != "foo" {
 		t.Errorf("Expected NullString's String to be foo, was %s", output.String)
 	}

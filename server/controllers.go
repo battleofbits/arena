@@ -43,6 +43,7 @@ var MatchesHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Reques
 		w.WriteHeader(http.StatusInternalServerError)
 		fmt.Println(err.Error())
 		fmt.Fprint(w, Response{"error": "We experienced an error. Please try again"})
+		return
 	}
 	if len(matches) == 0 {
 		// json.Marshal returns null instead of an empty list for a pointer

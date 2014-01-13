@@ -190,6 +190,28 @@ func TestStringBoard(t *testing.T) {
 	}
 	stringBoard := GetStringBoard(&fullBoard)
 	if stringBoard != expectedBoard {
-		t.Errorf("Output board", stringBoard, "didn't match expected board")
+		t.Fatalf("Output board", stringBoard, "didn't match expected board")
+	}
+}
+
+func TestConvertDatabaseBoard(t *testing.T) {
+	t.Parallel()
+	dbBoard := `[["B","","","R","","","B"],["R","","","B","","","R"],["R","",
+	"B","R","B","","R"],["R","R","B","R","B","R","B"],["B","R","B","B","R","B",
+	"R"],["B","R","B","B","R","B","R"]]`
+	expectedBoard := &[NumRows][NumColumns]int8{
+		[7]int8{Black, 0, 0, Red, 0, 0, Black},
+		[7]int8{Red, 0, 0, Black, 0, 0, Red},
+		[7]int8{Red, 0, Black, Red, Black, 0, Red},
+		[7]int8{Red, Red, Black, Red, Black, Red, Black},
+		[7]int8{Black, Red, Black, Black, Red, Black, Red},
+		[7]int8{Black, Red, Black, Black, Red, Black, Red},
+	}
+	board, err := ConvertDatabaseBoard(dbBoard)
+	if err != nil {
+		t.Fatalf(err.Error())
+	}
+	if board != expectedBoard {
+		t.Fatalf("Output board %d, didn't match expected board", board)
 	}
 }

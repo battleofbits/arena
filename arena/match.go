@@ -202,7 +202,8 @@ func GetMatches() ([]*FourUpMatch, error) {
 	query := "select red_players.name as red_player, " +
 		"black_players.name as black_player, " +
 		"winners.name as winner, " +
-		"fourup_matches.id, fourup_matches.started, fourup_matches.finished " +
+		"fourup_matches.id, fourup_matches.started, fourup_matches.finished, " +
+		"fourup_matches.board " +
 		"from fourup_matches " +
 		"inner join players as red_players on red_players.id=fourup_matches.player_red " +
 		"inner join players as black_players on black_players.id=fourup_matches.player_black " +
@@ -217,8 +218,13 @@ func GetMatches() ([]*FourUpMatch, error) {
 		var redName string
 		var blackName string
 		var winnerName string
+		var board []byte
 		err = rows.Scan(&redName, &blackName, &winnerName, &m.Id, &m.Started,
-			&m.Finished)
+			&m.Finished, &board)
+		if err != nil {
+			return nil, err
+		}
+		err := json.Unmarshal(board, &m.Board)
 		if err != nil {
 			return nil, err
 		}

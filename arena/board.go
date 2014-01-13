@@ -146,6 +146,7 @@ func GetStringBoard(board *[NumRows][NumColumns]int8) [NumRows][NumColumns]strin
 	}
 	return stringBoard
 }
+
 func IsBoardFull(board [NumRows][NumColumns]int8) bool {
 	// will check the top row, which is always the last to fill up.
 	for column := 0; column < NumColumns; column++ {
@@ -154,6 +155,12 @@ func IsBoardFull(board [NumRows][NumColumns]int8) bool {
 		}
 	}
 	return true
+}
+
+// Convert the database representation of a board into a regular board
+func ConvertDatabaseBoard(databaseBd string) (*[NumRows][NumColumns]int8, error) {
+	var board [NumRows][NumColumns]int8
+	return &board, nil
 }
 
 // Returns error if the move is invalid
