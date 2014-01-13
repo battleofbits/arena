@@ -15,7 +15,7 @@ type NullString struct {
 
 func (n NullString) MarshalJSON() ([]byte, error) {
 	if !n.Valid {
-		return []byte{}, nil
+		return []byte("null"), nil
 	} else {
 		return json.Marshal(n.String)
 	}
@@ -49,7 +49,7 @@ type NullTime struct {
 
 func (n NullTime) MarshalJSON() ([]byte, error) {
 	if !n.Valid {
-		return []byte{}, nil
+		return []byte("null"), nil
 	} else {
 		return json.Marshal(n.Time)
 	}
@@ -178,7 +178,8 @@ func WriteMatch(match *FourUpMatch) error {
 	query := "INSERT INTO fourup_matches " +
 		"(player_red, player_black, board, started) VALUES " +
 		"($1, $2, $3, NOW() at time zone 'utc') RETURNING id"
-	return db.QueryRow(query, match.RedPlayer.Id, match.BlackPlayer.Id, string(jsonBoard)).Scan(&match.Id)
+	return db.QueryRow(query, match.RedPlayer.Id, match.BlackPlayer.Id,
+		string(jsonBoard)).Scan(&match.Id)
 }
 
 // Update the match in the database

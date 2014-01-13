@@ -14,24 +14,23 @@ func TestNullTimeJSON(t *testing.T) {
 		Valid: true,
 		Time:  foo,
 	}
-	bits, err := s.MarshalJSON()
+	bits, err := json.Marshal(s)
 	checkError(err)
-	expected, _ := foo.MarshalJSON()
+	expected, _ := json.Marshal(foo)
 	if !bytes.Equal(bits, expected) {
-		t.Errorf("expected json marshal to be %s, was %s", string(bits), string(expected))
+		t.Errorf("expected json marshal to be %s, was %s", string(bits),
+			string(expected))
 	}
 }
 
 func TestNullTimeNullJSON(t *testing.T) {
 	t.Parallel()
-	foo := time.Now()
 	s := NullTime{
 		Valid: false,
-		Time:  foo,
 	}
-	bits, err := s.MarshalJSON()
+	bits, err := json.Marshal(s)
 	checkError(err)
-	if !bytes.Equal(bits, []byte{}) {
+	if !bytes.Equal(bits, []byte("null")) {
 		t.Errorf("expected json marshal to be empty, was %s", string(bits))
 	}
 }

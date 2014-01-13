@@ -85,6 +85,7 @@ type Response map[string]interface{}
 func (r Response) String() (s string) {
 	b, err := json.Marshal(r)
 	if err != nil {
+		fmt.Println("error serializing json response object:", err.Error())
 		s = ""
 		return
 	}
