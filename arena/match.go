@@ -98,6 +98,7 @@ type MatchResponse struct {
 	Board       *[NumRows][NumColumns]int8 `json:"board"`
 	Started     *NullTime                  `json:"started"`
 	Finished    *NullTime                  `json:"finished"`
+	Href        string                     `json:"href"`
 }
 
 func (m *FourUpMatch) MarshalJSON() ([]byte, error) {

@@ -158,6 +158,8 @@ var InvitationsHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Re
 			fmt.Fprint(w, Response{"error": err.Error()})
 			return
 		}
+		href := fmt.Sprintf("https://battleofbits.com/games/four-up/matches/%d", mtch.Id)
+		w.Header().Set("Location", href)
 		w.WriteHeader(http.StatusCreated)
 		startNullable := &arena.NullTime{
 			Valid: true,
@@ -175,6 +177,7 @@ var InvitationsHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Re
 			Board:       mtch.Board,
 			RedPlayer:   mtch.RedPlayer.Name,
 			BlackPlayer: mtch.BlackPlayer.Name,
+			Href:        href,
 		}
 		fmt.Fprint(w, Response{"matches": []*arena.MatchResponse{mr}})
 		// XXX check ordering here
