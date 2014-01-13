@@ -15,7 +15,9 @@ func TestNullTimeJSON(t *testing.T) {
 		Time:  foo,
 	}
 	bits, err := json.Marshal(s)
-	checkError(err)
+	if err != nil {
+		t.Fatalf(err.Error())
+	}
 	expected, _ := json.Marshal(foo)
 	if !bytes.Equal(bits, expected) {
 		t.Errorf("expected json marshal to be %s, was %s", string(bits),
