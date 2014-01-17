@@ -27,7 +27,6 @@ func (match *TestMatch) Stalemate() bool {
 	return false
 }
 
-
 func TestUnreachableServer(t *testing.T) {
 	t.Parallel()
 
@@ -38,7 +37,6 @@ func TestUnreachableServer(t *testing.T) {
 		t.Fatalf("Server should have errored")
 	}
 }
-
 
 func TestWinningMove(t *testing.T) {
 	t.Parallel()
@@ -53,7 +51,6 @@ func TestWinningMove(t *testing.T) {
 	match := TestMatch{Current: Player{MatchUrl: ts.URL}}
 
 	err := PlayMatch(&match)
-
 
 	if err != nil {
 		t.Logf("err:", err)
