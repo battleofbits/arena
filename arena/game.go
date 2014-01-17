@@ -16,6 +16,10 @@ const Empty = 0
 const Red = 1
 const Black = 2
 
+const NumRows = 6
+const NumColumns = 7
+const NumConsecutive = 4
+
 type TurnPlayers struct {
 	Red   string `json:"R"`
 	Black string `json:"B"`
@@ -37,17 +41,6 @@ type FourUpResponse struct {
 	Column int8 `json:"column"`
 }
 
-func serializeTurn(match *FourUpMatch) *FourUpTurn {
-	return &FourUpTurn{
-		Href:  getMatchHref(match.Id),
-		Board: GetStringBoard(match.Board),
-		Turn:  fmt.Sprintf(BaseUri+"/players/%s", match.CurrentPlayer.Name),
-		Players: &TurnPlayers{
-			Red:   fmt.Sprintf(BaseUri+"/players/%s", match.RedPlayer.Name),
-			Black: fmt.Sprintf(BaseUri+"/players/%s", match.BlackPlayer.Name),
-		},
-	}
-}
 func DoForfeit(loser *Player, reason error) {
 	fmt.Println(fmt.Sprintf("player %s forfeits because of %s", loser.Username, reason.Error()))
 }
@@ -62,8 +55,7 @@ func DoGameOver(match *FourUpMatch, winner *Player, loser *Player) {
 // Assemble and make an HTTP request to the user's URL
 // Returns the column of the response
 func GetMove(match *FourUpMatch) (int8, error) {
-	turn := serializeTurn(match)
-	postBody, err := json.Marshal(turn)
+	postBody, err := json.Marshal(match)
 	checkError(err)
 	httpResponse, err := MakeRequest(match.CurrentPlayer.MatchUrl, postBody)
 	return ParseResponse(httpResponse)
@@ -101,42 +93,6 @@ func MarkWinner(match *FourUpMatch, winner *Player) error {
 	return err
 }
 
-var moveWriter = WriteMove
-
-// Write a new move to the database
-func WriteMove(move int8, match *FourUpMatch) (int64, error) {
-	db := GetConnection()
-	defer db.Close()
-	query := "INSERT INTO fourup_moves (fourup_column, player, move_number, match_id, played)" +
-		"VALUES ($1, $2, $3, $4, NOW() at time zone 'utc') RETURNING id"
-	var moveId int64
-	err := db.QueryRow(query, move, match.CurrentPlayer.Id, match.MoveId, match.Id).Scan(&moveId)
-	return moveId, err
-}
-
-// Do a whole bunch of stuff associated with new moves
-// Error handling is a little tricky because most of the errors would be
-// database or other errors.
-func DoNewMove(move int8, match *FourUpMatch) error {
-	var err error
-	match.Board, err = ApplyMoveToBoard(move, match.GetCurrentTurnColor(),
-		match.Board)
-	// XXX
-	//if err != nil {
-	//DoForfeit(player, err)
-	//DoGameOver(match, otherPlayer, player)
-	//return err
-	//}
-	// once we know move was valid, update the database
-	_, err = WriteMove(move, match)
-	checkError(err)
-	match.MoveId++
-	err = UpdateMatch(match)
-	checkError(err)
-	NotifySubscribers(move, match)
-	return nil
-}
-
 // In the background, let people know about the new move
 func NotifySubscribers(move int8, match *FourUpMatch) {
 
@@ -165,15 +121,6 @@ func DoPlayerMove(player *Player, otherPlayer *Player, match *FourUpMatch, playe
 		return err
 	}
 	return nil
-}
-
-func CreateMatch(redPlayer *Player, blackPlayer *Player) (*FourUpMatch, error) {
-	match := CreateFourUpMatch(redPlayer, blackPlayer)
-	dbErr := WriteMatch(match)
-	if dbErr != nil {
-		return nil, dbErr
-	}
-	return match, nil
 }
 
 func StartMatch(match *FourUpMatch, playerOne *Player, playerTwo *Player) {

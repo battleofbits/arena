@@ -133,24 +133,6 @@ func gameOver(board [NumRows][NumColumns]int8) (bool, int8) {
 	return false, -1
 }
 
-func GetStringBoard(board *[NumRows][NumColumns]int8) [NumRows][NumColumns]string {
-	var stringBoard [NumRows][NumColumns]string
-	for row := int8(0); row < NumRows; row++ {
-		for column := int8(0); column < NumColumns; column++ {
-			if board[row][column] == Empty {
-				stringBoard[row][column] = ""
-			} else if board[row][column] == Red {
-				stringBoard[row][column] = "R"
-			} else if board[row][column] == Black {
-				stringBoard[row][column] = "B"
-			} else {
-				panic(fmt.Sprint("invalid value ", board[row][column], " for a board"))
-			}
-		}
-	}
-	return stringBoard
-}
-
 // Convert the database representation of a board into a regular board
 func GetIntBoard(dbBoard []byte) (*[NumRows][NumColumns]int8, error) {
 	var stringBoard [NumRows][NumColumns]string
