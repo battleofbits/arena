@@ -7,10 +7,9 @@ import (
 )
 
 type FourUpMatch struct {
-	Players []*arena.Player
-	Started time.Time
-	Board   string
-	// Red plays first, I believe.
+	Players       []*arena.Player
+	Started       time.Time
+	Board         string
 	CurrentPlayer *arena.Player
 	MoveId        int64
 }
