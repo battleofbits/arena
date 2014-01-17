@@ -1,8 +1,8 @@
 package engine
 
 import (
-	"fmt"
 	"database/sql"
+	"fmt"
 	"github.com/lib/pq"
 )
 
@@ -33,7 +33,6 @@ func (p Postgres) getConnection() (*sql.DB, error) {
 type Postgres struct {
 	url string
 }
-
 
 func (p Postgres) GetPlayers() ([]*Player, error) {
 	db, err := p.getConnection()
@@ -66,9 +65,9 @@ func (p Postgres) CreatePlayer(username string, name string, matchUrl string) (*
 	defer db.Close()
 
 	player := &Player{
-		Username:  username,
-		Name:      name,
-		MatchUrl:  matchUrl,
+		Username: username,
+		Name:     name,
+		MatchUrl: matchUrl,
 	}
 	query := "INSERT INTO players " +
 		"(username, name, match_url, invite_url)" +

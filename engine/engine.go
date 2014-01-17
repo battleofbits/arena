@@ -31,12 +31,11 @@ func (p *Player) SetHref() {
 	p.Href = fmt.Sprintf("https://battleofbits.com/players/%s", p.Name)
 }
 
-
 // Every instance of a game should implement this interface
 type Match interface {
 	CurrentPlayer() *Player
 	Play(*Player, []byte) (bool, error)
-	Winner() (Player, error)
+	Winner() Player
 	Stalemate() bool
 }
 
@@ -116,7 +115,7 @@ func PlayMatch(match Match) error {
 
 		if gameover {
 			// Record the winner
-			_, _ = match.Winner()
+			_ = match.Winner()
 			return nil
 		}
 		//count += 1

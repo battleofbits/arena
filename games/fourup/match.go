@@ -36,9 +36,9 @@ func (m *Match) Stalemate() bool {
 	return false
 }
 
-func (m *Match) Winner() (engine.Player, error) {
+func (m *Match) Winner() engine.Player {
 	// XXX
-	return *m.winner, nil
+	return *m.winner
 }
 
 func CreateMatch(players []*engine.Player) (*Match, error) {
@@ -47,7 +47,7 @@ func CreateMatch(players []*engine.Player) (*Match, error) {
 		return &Match{}, errors.New(msg)
 	}
 
-	var board *Board
+	board := &Board{}
 
 	return &Match{
 		Players: players,
@@ -65,8 +65,7 @@ func CreateMatch(players []*engine.Player) (*Match, error) {
 func (m *Match) Play(player *engine.Player, data []byte) (bool, error) {
 	var move Move
 
-	err := json.Unmarshal(data, move)
-
+	err := json.Unmarshal(data, &move)
 	if err != nil {
 		return true, err
 	}
