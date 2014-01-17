@@ -10,8 +10,10 @@ import (
 	"time"
 )
 
-const USER_AGENT = "battleofbits/0.1"
-const READ_TIME = 2
+const (
+	USER_AGENT = "battleofbits/0.1"
+	READ_TIME  = 2
+)
 
 type Player struct {
 	Id int64 `json:"-"`
