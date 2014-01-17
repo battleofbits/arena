@@ -75,134 +75,69 @@ func (n *NullTime) UnmarshalJSON(data []byte) error {
 	}
 }
 
-type FourUpMatch struct {
-	Id          int64
-	Started     time.Time
-	Finished    time.Time
-	RedPlayer   *Player
-	BlackPlayer *Player
-	// Whose turn is it
-	CurrentPlayer *Player
-	Winner        *Player
-	Board         *[NumRows][NumColumns]int8
-	MoveId        int
-}
-
 // public facing thingy
-type MatchResponse struct {
-	Id          int64                      `json:"id"`
-	CurrentMove string                     `json:"current_move"`
-	Winner      *NullString                `json:"winner"`
-	RedPlayer   string                     `json:"red_player"`
-	BlackPlayer string                     `json:"black_player"`
-	Board       *[NumRows][NumColumns]int8 `json:"board"`
-	Started     *NullTime                  `json:"started"`
-	Finished    *NullTime                  `json:"finished"`
-	Href        string                     `json:"href"`
-}
+//type MatchResponse struct {
+//Id          int64                      `json:"id"`
+//CurrentMove string                     `json:"current_move"`
+//Winner      *NullString                `json:"winner"`
+//RedPlayer   string                     `json:"red_player"`
+//BlackPlayer string                     `json:"black_player"`
+//Board       *[NumRows][NumColumns]int8 `json:"board"`
+//Started     *NullTime                  `json:"started"`
+//Finished    *NullTime                  `json:"finished"`
+//Href        string                     `json:"href"`
+//}
 
-func (mr *MatchResponse) SetHref() {
-	mr.Href = fmt.Sprintf("https://battleofbits.com/games/four-up/matches/%d",
-		mr.Id)
-}
+//func (mr *MatchResponse) SetHref() {
+//mr.Href = fmt.Sprintf("https://battleofbits.com/games/four-up/matches/%d",
+//mr.Id)
+//}
 
-func (m *FourUpMatch) MarshalJSON() ([]byte, error) {
-	winnerString := &NullString{
-		Valid: true,
-	}
-	if m.Winner != nil {
-		if m.Winner == m.RedPlayer {
-			winnerString.String = m.RedPlayer.Name
-		} else {
-			winnerString.String = m.BlackPlayer.Name
-		}
-	}
-	startNullable := &NullTime{
-		Valid: true,
-		Time:  m.Started,
-	}
-	finishedNullable := &NullTime{
-		Valid: true,
-		Time:  m.Finished,
-	}
-	var currentPlayerName, redPlayerName, blackPlayerName string
-	if m.CurrentPlayer != nil {
-		currentPlayerName = m.CurrentPlayer.Name
-	}
-	if m.RedPlayer != nil {
-		redPlayerName = m.RedPlayer.Name
-	}
-	if m.BlackPlayer != nil {
-		blackPlayerName = m.BlackPlayer.Name
-	}
-	mr := MatchResponse{
-		Id:          m.Id,
-		CurrentMove: currentPlayerName,
-		Winner:      winnerString,
-		Started:     startNullable,
-		Finished:    finishedNullable,
-		Board:       m.Board,
-		RedPlayer:   redPlayerName,
-		BlackPlayer: blackPlayerName,
-	}
-	mr.SetHref()
-	return json.Marshal(&mr)
-}
-
-func (m *FourUpMatch) GetCurrentTurnColor() int8 {
-	if m.CurrentPlayer == m.RedPlayer {
-		return Red
-	} else {
-		return Black
-	}
-}
+//func (m *FourUpMatch) MarshalJSON() ([]byte, error) {
+//winnerString := &NullString{
+//Valid: true,
+//}
+//if m.Winner != nil {
+//if m.Winner == m.RedPlayer {
+//winnerString.String = m.RedPlayer.Name
+//} else {
+//winnerString.String = m.BlackPlayer.Name
+//}
+//}
+//startNullable := &NullTime{
+//Valid: true,
+//Time:  m.Started,
+//}
+//finishedNullable := &NullTime{
+//Valid: true,
+//Time:  m.Finished,
+//}
+//var currentPlayerName, redPlayerName, blackPlayerName string
+//if m.CurrentPlayer != nil {
+//currentPlayerName = m.CurrentPlayer.Name
+//}
+//if m.RedPlayer != nil {
+//redPlayerName = m.RedPlayer.Name
+//}
+//if m.BlackPlayer != nil {
+//blackPlayerName = m.BlackPlayer.Name
+//}
+//mr := MatchResponse{
+//Id:          m.Id,
+//CurrentMove: currentPlayerName,
+//Winner:      winnerString,
+//Started:     startNullable,
+//Finished:    finishedNullable,
+//Board:       m.Board,
+//RedPlayer:   redPlayerName,
+//BlackPlayer: blackPlayerName,
+//}
+//mr.SetHref()
+//return json.Marshal(&mr)
+//}
 
 func getMatchHref(matchId int64) string {
 	return fmt.Sprintf(BaseUri+"/games/four-up/matches/%d", matchId)
-}
-
-func CreateFourUpMatch(redPlayer *Player, blackPlayer *Player) *FourUpMatch {
-	board := InitializeBoard()
-	match := &FourUpMatch{
-		RedPlayer:   redPlayer,
-		BlackPlayer: blackPlayer,
-		Board:       board,
-		// Red plays first, I believe.
-		CurrentPlayer: redPlayer,
-		MoveId:        0,
-		Started:       time.Now().UTC(),
-	}
-	return match
-}
-
-func WriteMatch(match *FourUpMatch) error {
-	db := GetConnection()
-	defer db.Close()
-	stringBoard := GetStringBoard(match.Board)
-	jsonBoard, err := json.Marshal(stringBoard)
-	if err != nil {
-		return err
-	}
-	query := "INSERT INTO fourup_matches " +
-		"(player_red, player_black, board, started) VALUES " +
-		"($1, $2, $3, NOW() at time zone 'utc') RETURNING id"
-	return db.QueryRow(query, match.RedPlayer.Id, match.BlackPlayer.Id,
-		string(jsonBoard)).Scan(&match.Id)
-}
-
-// Update the match in the database
-// Assumes the match has been initialized at some point
-func UpdateMatch(match *FourUpMatch) error {
-	db := GetConnection()
-	defer db.Close()
-	stringBoard := GetStringBoard(match.Board)
-	jsonBoard, err := json.Marshal(stringBoard)
-	if err != nil {
-		return err
-	}
-	query := "UPDATE fourup_matches SET board = $1 WHERE id = $2"
-	_, err = db.Exec(query, string(jsonBoard), match.Id)
-	return err
 }
 
 // dry up the query a little bit
@@ -228,68 +163,68 @@ func getMatchQuery(singleId bool) string {
 		where + "order by started limit 50"
 }
 
-func GetMatch(id int) (*FourUpMatch, error) {
-	db := GetConnection()
-	defer db.Close()
-	query := getMatchQuery(true)
-	fmt.Println(query)
-	row := db.QueryRow(query, id)
-	match, err := serializeMatch(row)
-	if err != nil {
-		return nil, err
-	}
-	return match, nil
-}
+//func GetMatch(id int) (*FourUpMatch, error) {
+//db := GetConnection()
+//defer db.Close()
+//query := getMatchQuery(true)
+//fmt.Println(query)
+//row := db.QueryRow(query, id)
+//match, err := serializeMatch(row)
+//if err != nil {
+//return nil, err
+//}
+//return match, nil
+//}
 
 type MatchScanner interface {
 	Scan(dest ...interface{}) error
 }
 
-func serializeMatch(scanner MatchScanner) (*FourUpMatch, error) {
-	var m FourUpMatch
-	var redName string
-	var blackName string
-	var winnerName string
-	var byteBoard []byte
-	err := scanner.Scan(&redName, &blackName, &winnerName, &m.Id, &m.Started,
-		&m.Finished, &byteBoard)
-	if err != nil {
-		return nil, err
-	}
-	board, err := GetIntBoard(byteBoard)
-	if err != nil {
-		return nil, err
-	}
-	m.Board = board
-	m.RedPlayer = &Player{
-		Name: redName,
-	}
-	m.BlackPlayer = &Player{
-		Name: blackName,
-	}
-	if winnerName == redName {
-		m.Winner = m.RedPlayer
-	} else if winnerName == blackName {
-		m.Winner = m.BlackPlayer
-	}
-	return &m, nil
-}
+//func serializeMatch(scanner MatchScanner) (*FourUpMatch, error) {
+//var m FourUpMatch
+//var redName string
+//var blackName string
+//var winnerName string
+//var byteBoard []byte
+//err := scanner.Scan(&redName, &blackName, &winnerName, &m.Id, &m.Started,
+//&m.Finished, &byteBoard)
+//if err != nil {
+//return nil, err
+//}
+//board, err := GetIntBoard(byteBoard)
+//if err != nil {
+//return nil, err
+//}
+//m.Board = board
+//m.RedPlayer = &Player{
+//Name: redName,
+//}
+//m.BlackPlayer = &Player{
+//Name: blackName,
+//}
+//if winnerName == redName {
+//m.Winner = m.RedPlayer
+//} else if winnerName == blackName {
+//m.Winner = m.BlackPlayer
+//}
+//return &m, nil
+//}
 
-func GetMatches() ([]*FourUpMatch, error) {
-	db := GetConnection()
-	defer db.Close()
-	query := getMatchQuery(false)
-	rows, err := db.Query(query)
-	if err != nil {
-		return nil, err
-	}
-	var matches []*FourUpMatch
-	for rows.Next() {
-		match, err := serializeMatch(rows)
-		if err != nil {
-			return nil, err
-		}
-		matches = append(matches, match)
-	}
-	return matches, nil
-}
+//func GetMatches() ([]*FourUpMatch, error) {
+//db := GetConnection()
+//defer db.Close()
+//query := getMatchQuery(false)
+//rows, err := db.Query(query)
+//if err != nil {
+//return nil, err
+//}
+//var matches []*FourUpMatch
+//for rows.Next() {
+//match, err := serializeMatch(rows)
+//if err != nil {
+//return nil, err
+//}
+//matches = append(matches, match)
+//}
+//return matches, nil
+//}
