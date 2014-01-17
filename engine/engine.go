@@ -37,8 +37,9 @@ func (p *Player) SetHref() {
 type Match interface {
 	CurrentPlayer() *Player
 	Play(*Player, []byte) (bool, error)
-	Winner() (Player, error)
+	Winner() Player
 	Stalemate() bool
+	NextPlayer() *Player
 }
 
 // Make a request to a player's URL
@@ -110,6 +111,8 @@ func PlayMatch(match Match) error {
 
 		gameover, err := match.Play(player, move)
 
+		player = match.NextPlayer()
+
 		if err != nil {
 			//Move was invalid, game is over
 			return err
@@ -117,7 +120,7 @@ func PlayMatch(match Match) error {
 
 		if gameover {
 			// Record the winner
-			_, _ = match.Winner()
+			_ = match.Winner()
 			return nil
 		}
 		//count += 1
