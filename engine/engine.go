@@ -10,15 +10,16 @@ import (
 
 const USER_AGENT = "battleofbits/0.1"
 
-// The player's friendly name
 type Player struct {
-	Id       int64  `json:"-"`
+	Id int64 `json:"-"`
+	// The player's friendly name
 	Name     string `json:"name"`
 	Username string `json:"username"`
 	MatchUrl string `json:"-"`
 	Href     string `json:"href"`
 }
 
+// Every instance of a game should implement this interface
 type Match interface {
 	CurrentPlayer() Player
 	Play(Player, []byte) (bool, error)
