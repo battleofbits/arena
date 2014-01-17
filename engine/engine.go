@@ -31,7 +31,6 @@ func (p *Player) SetHref() {
 	p.Href = fmt.Sprintf("https://battleofbits.com/players/%s", p.Name)
 }
 
-
 // Every instance of a game should implement this interface
 type Match interface {
 	CurrentPlayer() Player
