@@ -194,3 +194,12 @@ func UpdateMatch(match *FourUpMatch) error {
 	_, err = db.Exec(query, string(jsonBoard), match.Id)
 	return err
 }
+
+func markWinner(match *Match, winner *arena.Player) error {
+	db := GetConnection()
+	defer db.Close()
+	_, err := db.Exec("UPDATE fourup_matches SET winner = $1, "+
+		"finished = NOW() at time zone 'utc' WHERE id = $2",
+		winner.Id, match.Id)
+	return err
+}
