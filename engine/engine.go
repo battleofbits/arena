@@ -11,7 +11,7 @@ import (
 )
 
 const USER_AGENT = "battleofbits/0.1"
-const READ_TIME = 30
+const READ_TIME = 2
 
 type Player struct {
 	Id int64 `json:"-"`
@@ -33,8 +33,8 @@ func (p *Player) SetHref() {
 
 // Every instance of a game should implement this interface
 type Match interface {
-	CurrentPlayer() Player
-	Play(Player, []byte) (bool, error)
+	CurrentPlayer() *Player
+	Play(*Player, []byte) (bool, error)
 	Winner() (Player, error)
 	Stalemate() bool
 }
@@ -56,8 +56,8 @@ func MakeRequest(url string, body []byte) (*http.Response, error) {
 		Resp *http.Response
 		Err  error
 	}
-	var httpRes chan HttpTimeoutResponse
 
+	httpRes := make(chan HttpTimeoutResponse, 1)
 	go func() {
 		res, err := client.Do(req)
 		httpRes <- HttpTimeoutResponse{Resp: res, Err: err}
@@ -100,10 +100,10 @@ func PlayMatch(match Match) error {
 	for {
 		player := match.CurrentPlayer()
 
-		move, err := GetMove(match, player)
+		move, err := GetMove(match, *player)
 
 		if err != nil {
-			return fmt.Errorf("Player's server was unreachable: %s", err)
+			return fmt.Errorf("Player's server %s was unreachable: %s", player.MatchUrl, err)
 		}
 
 		gameover, err := match.Play(player, move)
@@ -118,5 +118,10 @@ func PlayMatch(match Match) error {
 			_, _ = match.Winner()
 			return nil
 		}
+		//count += 1
+		//fmt.Println(count)
+		//if count > 50 {
+		//return nil
+		//}
 	}
 }

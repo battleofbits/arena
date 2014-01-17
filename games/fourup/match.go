@@ -36,24 +36,27 @@ func (m *Match) Stalemate() bool {
 	return false
 }
 
-func CreateMatch(players []*engine.Player) (Match, error) {
+func (m *Match) Winner() (engine.Player, error) {
+	// XXX
+	return *m.winner, nil
+}
+
+func CreateMatch(players []*engine.Player) (*Match, error) {
 	if len(players) != 2 {
 		msg := fmt.Sprintf("wrong number of players: %d", len(players))
-		return Match{}, errors.New(msg)
+		return &Match{}, errors.New(msg)
 	}
 
 	var board *Board
 
-	match := Match{
+	return &Match{
 		Players: players,
 		Board:   board,
 		// Red plays first, I believe.
 		currentPlayer: players[0],
 		MoveId:        0,
 		Started:       time.Now().UTC(),
-	}
-
-	return match, nil
+	}, nil
 }
 
 // Apply the move to the board, write it to the database
