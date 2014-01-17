@@ -2,7 +2,6 @@ package engine
 
 import (
 	"database/sql"
-	"fmt"
 	"github.com/lib/pq"
 )
 
@@ -119,11 +118,11 @@ func (p PostgresDatastore) CreatePlayer(username string, name string, matchUrl s
 }
 
 func (p PostgresDatastore) GetPlayerByName(name string) (*Player, error) {
-	return p.getPlayer(queryPlayerByName, name)
+	return p.getPlayer(queryPlayerName, name)
 }
 
 func (p PostgresDatastore) GetPlayerById(playerId int) (*Player, error) {
-	return p.getPlayer(queryPlayerById, playerId)
+	return p.getPlayer(queryPlayerId, playerId)
 }
 
 func (pd PostgresDatastore) getPlayer(query string, value interface{}) (*Player, error) {
