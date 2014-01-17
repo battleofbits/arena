@@ -3,22 +3,26 @@ package engine
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"time"
 )
 
 const USER_AGENT = "battleofbits/0.1"
+const READ_TIME = 30
 
-// The player's friendly name
 type Player struct {
-	Id       int64  `json:"-"`
+	Id int64 `json:"-"`
+	// The player's friendly name
 	Name     string `json:"name"`
 	Username string `json:"username"`
 	MatchUrl string `json:"-"`
 	Href     string `json:"href"`
 }
 
+// Every instance of a game should implement this interface
 type Match interface {
 	CurrentPlayer() Player
 	Play(Player, []byte) (bool, error)
@@ -26,6 +30,7 @@ type Match interface {
 	Stalemate() bool
 }
 
+// Make a request to a player's URL
 func MakeRequest(url string, body []byte) (*http.Response, error) {
 	req, err := http.NewRequest("POST", url, bytes.NewReader(body))
 
@@ -36,8 +41,24 @@ func MakeRequest(url string, body []byte) (*http.Response, error) {
 	client := &http.Client{}
 	req.Header.Add("Content-Type", "application/json")
 	req.Header.Add("User-Agent", USER_AGENT)
-	// XXX, set a timeout here
-	return client.Do(req)
+
+	// XXX, make this anonymous.
+	type HttpTimeoutResponse struct {
+		Resp *http.Response
+		Err  error
+	}
+	var httpRes chan HttpTimeoutResponse
+
+	go func() {
+		res, err := client.Do(req)
+		httpRes <- HttpTimeoutResponse{Resp: res, Err: err}
+	}()
+	select {
+	case res := <-httpRes:
+		return res.Resp, res.Err
+	case <-time.After(time.Second * READ_TIME):
+		return nil, errors.New("HTTP Response was not received in time")
+	}
 }
 
 // Assemble and make an HTTP request to the user's URL
