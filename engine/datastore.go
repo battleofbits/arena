@@ -6,6 +6,16 @@ import (
 	"github.com/lib/pq"
 )
 
+const (
+	queryAllPlayers = `SELECT username, name from players`
+	queryNewPlayer  = `INSERT INTO players (username, name, match_url, invite_url) 
+				VALUES ($1, $2, $3, $4) RETURNING id`
+	queryPlayerId = `SELECT id, username, name, match_url, invite_url
+				FROM players WHERE id = $1`
+	queryPlayerName = `SELECT id, username, name, match_url, invite_url
+				FROM players WHERE name = $1`
+)
+
 type Datastore interface {
 	CreatePlayer(string, string, string, string) (Player, error)
 	GetPlayers() []Player
@@ -64,7 +74,7 @@ func (p PostgresDatastore) GetPlayers() ([]*Player, error) {
 		return nil, err
 	}
 	defer db.Close()
-	rows, err := db.Query("SELECT username, name from players")
+	rows, err := db.Query(queryAllPlayers)
 	if err != nil {
 		return nil, err
 	}
@@ -93,10 +103,7 @@ func (p PostgresDatastore) CreatePlayer(username string, name string, matchUrl s
 		Name:     name,
 		MatchUrl: matchUrl,
 	}
-	query := "INSERT INTO players " +
-		"(username, name, match_url, invite_url)" +
-		"VALUES ($1, $2, $3, $4) RETURNING id"
-	err = db.QueryRow(query, username, name, matchUrl, "").Scan(
+	err = db.QueryRow(queryNewPlayer, username, name, matchUrl, "").Scan(
 		&player.Id)
 	var pqerr *pq.Error
 	if err != nil {
@@ -112,22 +119,20 @@ func (p PostgresDatastore) CreatePlayer(username string, name string, matchUrl s
 }
 
 func (p PostgresDatastore) GetPlayerByName(name string) (*Player, error) {
-	return p.getPlayer("name", name)
+	return p.getPlayer(queryPlayerByName, name)
 }
 
 func (p PostgresDatastore) GetPlayerById(playerId int) (*Player, error) {
-	return p.getPlayer("id", playerId)
+	return p.getPlayer(queryPlayerById, playerId)
 }
 
-func (pd PostgresDatastore) getPlayer(attr string, value interface{}) (*Player, error) {
+func (pd PostgresDatastore) getPlayer(query string, value interface{}) (*Player, error) {
 	var p Player
 	db, err := pd.getConnection()
 	if err != nil {
 		return nil, err
 	}
 	defer db.Close()
-	query := fmt.Sprintf("SELECT id, username, name, match_url, invite_url "+
-		"FROM players WHERE %s = $1", attr)
 	err = db.QueryRow(query, value).Scan(&p.Id, &p.Username, &p.Name,
 		&p.MatchUrl, "")
 	if err != nil {
