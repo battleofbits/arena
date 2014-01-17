@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/battleofbits/arena/arena"
 	"github.com/battleofbits/arena/engine"
 	"time"
 )
@@ -94,7 +95,7 @@ func (m *Match) getCurrentTurnColor() int8 {
 
 // Update the match in the database
 // Assumes the match has been initialized at some point
-func UpdateMatch(match *FourUpMatch) error {
+func UpdateMatch(match *Match) error {
 	db := arena.GetConnection()
 	defer db.Close()
 	jsonBoard, err := json.Marshal(match.Board)
@@ -107,7 +108,7 @@ func UpdateMatch(match *FourUpMatch) error {
 }
 
 func markWinner(match *Match, winner *arena.Player) error {
-	db := GetConnection()
+	db := arena.GetConnection()
 	defer db.Close()
 	_, err := db.Exec("UPDATE fourup_matches SET winner = $1, "+
 		"finished = NOW() at time zone 'utc' WHERE id = $2",

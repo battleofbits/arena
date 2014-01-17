@@ -52,6 +52,7 @@ func (board Board) getStringBoard() StringBoard {
 	}
 	return stringBoard
 }
+
 // row varies, column does not.
 func checkVerticalWin(column int8, board Board) (bool, int8) {
 	checkRowInColumn := func(column int8, row int8,
@@ -169,7 +170,7 @@ func (board Board) GameOver() (bool, int8) {
 }
 
 // Returns error if the move is invalid
-func (bp *Board) ApplyMove(move int8, color int8) (error) {
+func (bp *Board) ApplyMove(move int8, color int8) error {
 	if move >= NumColumns || move < 0 {
 		return errors.New(fmt.Sprintf("Move %d is invalid", move))
 	}
