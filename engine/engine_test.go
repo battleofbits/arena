@@ -8,19 +8,23 @@ import (
 )
 
 type TestMatch struct {
-	Current Player
+	Current *Player
 }
 
-func (match *TestMatch) CurrentPlayer() Player {
+func (match *TestMatch) CurrentPlayer() *Player {
 	return match.Current
 }
 
-func (match *TestMatch) Play(p Player, body []byte) (bool, error) {
+func (match *TestMatch) Play(p *Player, body []byte) (bool, error) {
 	return string(body) == "hello\n", nil
 }
 
-func (match *TestMatch) Winner() (Player, error) {
-	return Player{}, nil
+func (match *TestMatch) Winner() Player {
+	return Player{}
+}
+
+func (match *TestMatch) NextPlayer() *Player {
+	return &Player{}
 }
 
 func (match *TestMatch) Stalemate() bool {
@@ -30,7 +34,7 @@ func (match *TestMatch) Stalemate() bool {
 func TestUnreachableServer(t *testing.T) {
 	t.Parallel()
 
-	match := TestMatch{}
+	match := TestMatch{Current: &Player{MatchUrl: ""}}
 	err := PlayMatch(&match)
 
 	if err == nil {
@@ -48,7 +52,7 @@ func TestWinningMove(t *testing.T) {
 		fmt.Fprintln(w, "hello")
 	}))
 
-	match := TestMatch{Current: Player{MatchUrl: ts.URL}}
+	match := TestMatch{Current: &Player{MatchUrl: ts.URL}}
 
 	err := PlayMatch(&match)
 

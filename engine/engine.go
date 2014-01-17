@@ -117,6 +117,9 @@ func PlayMatch(match Match) error {
 		}
 
 		if gameover {
+			if match.Stalemate() {
+
+			}
 			// Record the winner
 			_ = match.Winner()
 			return nil
