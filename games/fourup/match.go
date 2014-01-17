@@ -1,7 +1,9 @@
 package fourup
 
 import (
-	"bytes"
+	"encoding/json"
+	"errors"
+	"fmt"
 	"github.com/battleofbits/arena/arena"
 	"time"
 )
@@ -16,11 +18,13 @@ type FourUpMatch struct {
 	Players       []*arena.Player
 	Started       time.Time
 	Board         *FourUpBoard
-	CurrentPlayer *arena.Player
+	currentPlayer *arena.Player
 	MoveId        int64
+	winner        *arena.Player
+	Id            int64
 }
 
-func getStringBoard(board *[NumRows][NumColumns]int8) [NumRows][NumColumns]string {
+func getStringBoard(board [NumRows][NumColumns]int8) [NumRows][NumColumns]string {
 	var stringBoard [NumRows][NumColumns]string
 	for row := int8(0); row < NumRows; row++ {
 		for column := int8(0); column < NumColumns; column++ {
@@ -58,27 +62,28 @@ func (b *FourUpBoard) MarshalJSON() ([]byte, error) {
 }
 
 // Retrieve the current player.
-func (m *FourUpMatch) CurrentPlayer() Player {
-	return m.CurrentPlayer
+func (m *FourUpMatch) CurrentPlayer() *arena.Player {
+	return m.currentPlayer
 }
 
 func (m *FourUpMatch) Stalemate() bool {
-
+	// XXX
+	return false
 }
 
-func CreateMatch(players []arena.Player) (FourUpMatch, error) {
+func CreateMatch(players []*arena.Player) (FourUpMatch, error) {
 	if len(players) != 2 {
-		return FoupUpMatch{}, errors.New("wrong number of players: %d", len(players))
+		msg := fmt.Sprintf("wrong number of players: %d", len(players))
+		return FourUpMatch{}, errors.New(msg)
 	}
 
 	return createFourUpMatch(players), nil
 }
 
-
 // Apply the move to the board, write it to the database
 // Returns a boolean (whether the game is over) and an error (whether the move
 // was invalid)
-func (m *FourUpMatch) Play(player arena.Player, data []byte) (bool, error) {
+func (m *FourUpMatch) Play(player *arena.Player, data []byte) (bool, error) {
 	var fm fourUpMove
 	err := json.Unmarshal(data, fm)
 	if err != nil {
@@ -87,23 +92,23 @@ func (m *FourUpMatch) Play(player arena.Player, data []byte) (bool, error) {
 	err = doNewMove(fm.Column, m)
 	if err != nil {
 		// XXX, assign the winner to be the other player.
-		match.Winner = player - 1
+		m.winner = player
 		return true, err
 	}
-	if over, winner := gameOver(*match.Board); over {
-		match.Winner = player
+	if over, winner := gameOver(m.Board.Board); over {
+		m.winner = player
 		return true, nil
 	}
 	return false, nil
 }
 
 func createFourUpMatch(players []*arena.Player) *arena.Match {
-	board := initializeBoard()
-	return &arena.Match{
+	var board *FourUpBoard
+	return &FourUpMatch{
 		Players: players,
 		Board:   board,
 		// Red plays first, I believe.
-		CurrentPlayer: players[0],
+		currentPlayer: players[0],
 		MoveId:        0,
 		Started:       time.Now().UTC(),
 	}
@@ -112,15 +117,14 @@ func createFourUpMatch(players []*arena.Player) *arena.Match {
 func writeMatch(match *FourUpMatch) error {
 	db := arena.GetConnection()
 	defer db.Close()
-	stringBoard := GetStringBoard(match.Board)
-	jsonBoard, err := json.Marshal(stringBoard)
+	jsonBoard, err := json.Marshal(match.Board)
 	if err != nil {
 		return err
 	}
 	query := "INSERT INTO fourup_matches " +
 		"(player_red, player_black, board, started) VALUES " +
 		"($1, $2, $3, NOW() at time zone 'utc') RETURNING id"
-	return db.QueryRow(query, match.RedPlayer.Id, match.BlackPlayer.Id,
+	return db.QueryRow(query, match.Players[0].Id, match.Players[1].Id,
 		string(jsonBoard)).Scan(&match.Id)
 }
 
@@ -174,4 +178,19 @@ func doNewMove(column int8, match *arena.Match) error {
 	if err != nil {
 		return err
 	}
+	return nil
+}
+
+// Update the match in the database
+// Assumes the match has been initialized at some point
+func UpdateMatch(match *FourUpMatch) error {
+	db := arena.GetConnection()
+	defer db.Close()
+	jsonBoard, err := json.Marshal(match.Board)
+	if err != nil {
+		return err
+	}
+	query := "UPDATE fourup_matches SET board = $1 WHERE id = $2"
+	_, err = db.Exec(query, string(jsonBoard), match.Id)
+	return err
 }

@@ -42,7 +42,7 @@ func TestGameOver(t *testing.T) {
 		[7]int8{1, 0, 0, 0, 0, 0, 2},
 		[7]int8{1, 0, 0, 0, 0, 0, 2},
 	}
-	if !GameOver(winThirdVertical) {
+	if !gameOver(winThirdVertical) {
 		t.Errorf("Game should be over if 4 vertical tiles " +
 			"starting in top row, form a connect four")
 	}
@@ -55,7 +55,7 @@ func TestGameOver(t *testing.T) {
 		[7]int8{1, 0, 0, 0, 0, 0, 0},
 		[7]int8{1, 0, 0, 0, 0, 0, 0},
 	}
-	if !GameOver(winVertical) {
+	if !gameOver(winVertical) {
 		t.Errorf("Game should be over if 4 vertical tiles are in a row")
 	}
 
@@ -67,7 +67,7 @@ func TestGameOver(t *testing.T) {
 		[7]int8{0, 0, 0, 0, 0, 0, 1},
 		[7]int8{0, 0, 0, 0, 0, 0, 1},
 	}
-	if !GameOver(winOtherVertical) {
+	if !gameOver(winOtherVertical) {
 		t.Errorf("Game should be over if 4 other vertical tiles are in a row")
 	}
 
@@ -79,7 +79,7 @@ func TestGameOver(t *testing.T) {
 		[7]int8{0, 0, 0, 0, 0, 0, 0},
 		[7]int8{0, 0, 0, 0, 0, 0, 0},
 	}
-	if !GameOver(winHorizontal) {
+	if !gameOver(winHorizontal) {
 		t.Errorf("Game should be over if 4 horizontal tiles are in a row")
 	}
 
@@ -91,7 +91,7 @@ func TestGameOver(t *testing.T) {
 		[7]int8{0, 0, 0, 0, 1, 0, 0},
 		[7]int8{0, 0, 0, 0, 0, 1, 0},
 	}
-	if !GameOver(winDiagonal) {
+	if !gameOver(winDiagonal) {
 		t.Errorf("Game should be over if 4 southeast diagonal tiles are in a row")
 	}
 
@@ -103,8 +103,11 @@ func TestGameOver(t *testing.T) {
 		[7]int8{0, 0, 1, 0, 1, 0, 0},
 		[7]int8{0, 1, 0, 0, 0, 1, 0},
 	}
-	if !GameOver(winSouthwestDiagonal) {
+	if over, winner := gameOver(winSouthwestDiagonal); !over {
 		t.Errorf("Game should be over if 4 southwest diagonal tiles are in a row")
+	}
+	if winner != 1 {
+		t.Errorf("winner should be 1")
 	}
 
 	unfinishedGame := [NumRows][NumColumns]int8{
@@ -115,7 +118,7 @@ func TestGameOver(t *testing.T) {
 		[7]int8{0, 0, 0, 2, 1, 1, 0},
 		[7]int8{0, 0, 1, 1, 2, 2, 2},
 	}
-	if GameOver(unfinishedGame) {
+	if gameOver(unfinishedGame) {
 		t.Errorf("Game was marked over, but wasn't over")
 	}
 }

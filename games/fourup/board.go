@@ -6,6 +6,11 @@ import (
 	"fmt"
 )
 
+// Ints representing board state
+const Empty = 0
+const Red = 1
+const Black = 2
+
 const NumRows = 6
 const NumColumns = 7
 const NumConsecutive = 4
@@ -184,8 +189,8 @@ func applyMoveToBoard(move int8, color int8, bp *[NumRows][NumColumns]int8) (
 	return bp, errors.New(fmt.Sprintf("No room in column %d for a move", move))
 }
 
-func initializeBoard() *[NumRows][NumColumns]int8 {
-	// Board is initialized to be filled with zeros.
-	var board [NumRows][NumColumns]int8
-	return &board
-}
+//func initializeBoard() *[NumRows][NumColumns]int8 {
+//// Board is initialized to be filled with zeros.
+//var board [NumRows][NumColumns]int8
+//return &board
+//}
