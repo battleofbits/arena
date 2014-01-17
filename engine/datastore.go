@@ -13,15 +13,43 @@ type Datastore interface {
 	GetPlayerById(int) (Player, error)
 }
 
-// rawUrl := "postgres://postgres_arena@localhost:5432/arena?sslmode=disable"
-func (p Postgres) getConnection() (*sql.DB, error) {
+type DummyDatastore struct {
+}
+
+func (p DummyDatastore) GetPlayers() ([]*Player, error) {
+	return []*Player{}, nil
+}
+
+func (p DummyDatastore) CreatePlayer(username string, name string, matchUrl string) (*Player, error) {
+	player := &Player{
+		Username: username,
+		Name:     name,
+		MatchUrl: matchUrl,
+	}
+	return player, nil
+}
+
+func (p DummyDatastore) GetPlayerByName(name string) (*Player, error) {
+	return &Player{Name: name}, nil
+}
+
+func (p DummyDatastore) GetPlayerById(playerId int) (*Player, error) {
+	return &Player{Id: 0}, nil
+}
+
+type PostgresDatastore struct {
+	url string
+}
+
+// rawUrl := "PostgresDatastore://PostgresDatastore_arena@localhost:5432/arena?sslmode=disable"
+func (p PostgresDatastore) getConnection() (*sql.DB, error) {
 	url, err := pq.ParseURL(p.url)
 
 	if err != nil {
 		return nil, err
 	}
 
-	db, err := sql.Open("postgres", url)
+	db, err := sql.Open("PostgresDatastore", url)
 
 	if err != nil {
 		return nil, err
@@ -30,11 +58,7 @@ func (p Postgres) getConnection() (*sql.DB, error) {
 	return db, nil
 }
 
-type Postgres struct {
-	url string
-}
-
-func (p Postgres) GetPlayers() ([]*Player, error) {
+func (p PostgresDatastore) GetPlayers() ([]*Player, error) {
 	db, err := p.getConnection()
 	if err != nil {
 		return nil, err
@@ -57,7 +81,7 @@ func (p Postgres) GetPlayers() ([]*Player, error) {
 	return players, nil
 }
 
-func (p Postgres) CreatePlayer(username string, name string, matchUrl string) (*Player, error) {
+func (p PostgresDatastore) CreatePlayer(username string, name string, matchUrl string) (*Player, error) {
 	db, err := p.getConnection()
 	if err != nil {
 		return nil, err
@@ -87,15 +111,15 @@ func (p Postgres) CreatePlayer(username string, name string, matchUrl string) (*
 	return player, nil
 }
 
-func (p Postgres) GetPlayerByName(name string) (*Player, error) {
+func (p PostgresDatastore) GetPlayerByName(name string) (*Player, error) {
 	return p.getPlayer("name", name)
 }
 
-func (p Postgres) GetPlayerById(playerId int) (*Player, error) {
+func (p PostgresDatastore) GetPlayerById(playerId int) (*Player, error) {
 	return p.getPlayer("id", playerId)
 }
 
-func (pd Postgres) getPlayer(attr string, value interface{}) (*Player, error) {
+func (pd PostgresDatastore) getPlayer(attr string, value interface{}) (*Player, error) {
 	var p Player
 	db, err := pd.getConnection()
 	if err != nil {
