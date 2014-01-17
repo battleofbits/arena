@@ -3,12 +3,16 @@ package fourup
 import (
 	"bytes"
 	"github.com/battleofbits/arena/arena"
+	"time"
 )
 
 type FourUpMatch struct {
-	//Stalemate() bool
-	//Winner() *Player
-	//Play(*Player, *Move) (gameover, error)
+	Players []*arena.Player
+	Started time.Time
+	Board   string
+	// Red plays first, I believe.
+	CurrentPlayer *arena.Player
+	MoveId        int64
 }
 
 // Retrieve the current player.
