@@ -7,10 +7,9 @@ import (
 )
 
 type FourUpMatch struct {
-	Players []*arena.Player
-	Started time.Time
-	Board   string
-	// Red plays first, I believe.
+	Players       []*arena.Player
+	Started       time.Time
+	Board         string
 	CurrentPlayer *arena.Player
 	MoveId        int64
 }
@@ -20,7 +19,7 @@ func (m *FourUpMatch) CurrentPlayer() *Player {
 
 }
 
-func (m *FourUpMatch) Forfeit(player *Player) error {
+func (m *FourUpMatch) Forfeit(player Player) error {
 
 }
 
@@ -35,9 +34,9 @@ func CreateMatch(players []*arena.Player) (*arena.Match, error) {
 	match := createFourUpMatch(players)
 	dbErr := writeMatch(match)
 	if dbErr != nil {
-		return dbErr
+		return nil, dbErr
 	}
-	return nil
+	return match, nil
 }
 
 // Apply the move to the board, write it to the database
