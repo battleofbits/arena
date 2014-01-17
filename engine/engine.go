@@ -8,14 +8,13 @@ import (
 
 const USER_AGENT = "battleofbits/0.1"
 
-
 // The player's friendly name
 type Player struct {
-	Id int64 `json:"-"`
-	Name string `json:"name"`
-	Username  string `json:"username"`
-	MatchUrl  string `json:"-"`
-	Href      string `json:"href"`
+	Id       int64  `json:"-"`
+	Name     string `json:"name"`
+	Username string `json:"username"`
+	MatchUrl string `json:"-"`
+	Href     string `json:"href"`
 }
 
 type Match interface {
@@ -24,7 +23,6 @@ type Match interface {
 	Winner() (Player, error)
 	Stalemate() bool
 }
-
 
 func MakeRequest(url string, body []byte) (*http.Response, error) {
 	req, err := http.NewRequest("POST", url, bytes.NewReader(postBody))
@@ -69,25 +67,25 @@ func GetMove(match *Match) ([]byte, error) {
 }
 
 func PlayMatch(match *Match, players []Player) {
-    for {
-        player := m.CurrentPlayer()
-        
-        move, err := GetMove(player, m)
-        
-        if err != nil {
-		break;
-        }
-        
-        gameover, err := m.Play(player, move)
-        
-        if err != nil {
-            //Move was invalid, game is over
-	    break;
-        }
+	for {
+		player := m.CurrentPlayer()
 
-        if gameover {
-            // Record the winner
-            winner, err := m.Winner()
-        }
-    }
+		move, err := GetMove(player, m)
+
+		if err != nil {
+			break
+		}
+
+		gameover, err := m.Play(player, move)
+
+		if err != nil {
+			//Move was invalid, game is over
+			break
+		}
+
+		if gameover {
+			// Record the winner
+			winner, err := m.Winner()
+		}
+	}
 }
