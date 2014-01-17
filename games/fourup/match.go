@@ -5,6 +5,25 @@ import (
 	"github.com/battleofbits/arena/arena"
 )
 
+type FourUpMatch struct {
+	//Stalemate() bool
+	//Winner() *Player
+	//Play(*Player, *Move) (gameover, error)
+}
+
+// Retrieve the current player.
+func (m *FourUpMatch) CurrentPlayer() *Player {
+
+}
+
+func (m *FourUpMatch) Forfeit(player *Player) error {
+
+}
+
+func (m *FourUpMatch) Stalemate() bool {
+
+}
+
 func CreateMatch(players []*arena.Player) (*arena.Match, error) {
 	if len(players) != 2 {
 		return nil, errors.New("wrong number of players: %d", len(players))
@@ -20,7 +39,7 @@ func CreateMatch(players []*arena.Player) (*arena.Match, error) {
 // Apply the move to the board, write it to the database
 // Returns a boolean (whether the game is over) and an error (whether the move
 // was invalid)
-func (m *Match) Play(player *arena.Player, data []bytes) (bool, error) {
+func (m *FourUpMatch) Play(player *arena.Player, data []bytes) (bool, error) {
 	var fm fourUpMove
 	err := json.Unmarshal(data, fm)
 	if err != nil {
@@ -77,6 +96,15 @@ func writeMove(move int8, match *arena.Match) (int64, error) {
 	var moveId int64
 	err := db.QueryRow(query, move, match.CurrentPlayer.Id, match.MoveId, match.Id).Scan(&moveId)
 	return moveId, err
+}
+
+// Convert players => board color
+func (m *FourUpMatch) getCurrentTurnColor() int8 {
+	if m.CurrentPlayer() == m.Players[0] {
+		return Red
+	} else {
+		return Black
+	}
 }
 
 // A four up move
