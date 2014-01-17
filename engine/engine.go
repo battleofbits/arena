@@ -1,6 +1,8 @@
 package engine
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -25,7 +27,7 @@ type Match interface {
 }
 
 func MakeRequest(url string, body []byte) (*http.Response, error) {
-	req, err := http.NewRequest("POST", url, bytes.NewReader(postBody))
+	req, err := http.NewRequest("POST", url, bytes.NewReader(body))
 
 	if err != nil {
 		return nil, err
@@ -40,14 +42,12 @@ func MakeRequest(url string, body []byte) (*http.Response, error) {
 
 // Assemble and make an HTTP request to the user's URL
 // Returns the column of the response
-func GetMove(match *Match) ([]byte, error) {
+func GetMove(match Match, player Player) ([]byte, error) {
 	payload, err := json.Marshal(match)
 
 	if err != nil {
 		return []byte{}, err
 	}
-
-	player := match.CurrentPlayer()
 
 	response, err := MakeRequest(player.MatchUrl, payload)
 
@@ -63,29 +63,30 @@ func GetMove(match *Match) ([]byte, error) {
 		return []byte{}, err
 	}
 
-	return body
+	return body, nil
 }
 
-func PlayMatch(match *Match, players []Player) {
+func PlayMatch(match Match) error {
 	for {
-		player := m.CurrentPlayer()
+		player := match.CurrentPlayer()
 
-		move, err := GetMove(player, m)
+		move, err := GetMove(match, player)
 
 		if err != nil {
-			break
+			return fmt.Errorf("Player's server was unreachable: %s", err)
 		}
 
-		gameover, err := m.Play(player, move)
+		gameover, err := match.Play(player, move)
 
 		if err != nil {
 			//Move was invalid, game is over
-			break
+			return err
 		}
 
 		if gameover {
 			// Record the winner
-			winner, err := m.Winner()
+			_, _ = match.Winner()
+			return nil
 		}
 	}
 }
