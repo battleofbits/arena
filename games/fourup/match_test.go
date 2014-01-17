@@ -26,5 +26,6 @@ func TestGameLogic(t *testing.T) {
 	if err != nil {
 		t.Errorf(err.Error())
 	}
+	fmt.Println(match.Board)
 	t.Errorf("foo")
 }

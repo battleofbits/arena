@@ -37,6 +37,7 @@ type Match interface {
 	Play(*Player, []byte) (bool, error)
 	Winner() Player
 	Stalemate() bool
+	NextPlayer() *Player
 }
 
 // Make a request to a player's URL
@@ -107,6 +108,8 @@ func PlayMatch(match Match) error {
 		}
 
 		gameover, err := match.Play(player, move)
+
+		player = match.NextPlayer()
 
 		if err != nil {
 			//Move was invalid, game is over

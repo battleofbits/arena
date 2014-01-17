@@ -41,6 +41,15 @@ func (m *Match) Winner() engine.Player {
 	return *m.winner
 }
 
+func (m *Match) NextPlayer() *engine.Player {
+	if m.currentPlayer == m.Players[0] {
+		m.currentPlayer = m.Players[1]
+	} else {
+		m.currentPlayer = m.Players[0]
+	}
+	return m.currentPlayer
+}
+
 func CreateMatch(players []*engine.Player) (*Match, error) {
 	if len(players) != 2 {
 		msg := fmt.Sprintf("wrong number of players: %d", len(players))
