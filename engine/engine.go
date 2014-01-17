@@ -1,14 +1,13 @@
 package engine
 
 import (
+	"fmt"
 	"io/ioutil"
+	"net/http"
 )
 
 const USER_AGENT = "battleofbits/0.1"
 
-type Match interface {
-	CurrentPlayer() Player
-}
 
 // The player's friendly name
 type Player struct {
@@ -19,8 +18,10 @@ type Player struct {
 	Href      string `json:"href"`
 }
 
-
-func GetMove(player *Player, match *Match) {
+type Match interface {
+	CurrentPlayer() Player
+	Play(Player, []byte) (bool, error)
+	Winner() (Player, error)
 }
 
 
@@ -73,13 +74,14 @@ func PlayMatch(match *Match, players []Player) {
         move, err := GetMove(player, m)
         
         if err != nil {
-            m.Forfeit(player)
+		break;
         }
         
         gameover, err := m.Play(player, move)
         
         if err != nil {
             //Move was invalid, game is over
+	    break;
         }
 
         if gameover {
