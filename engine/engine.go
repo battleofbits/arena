@@ -22,6 +22,7 @@ type Match interface {
 	CurrentPlayer() Player
 	Play(Player, []byte) (bool, error)
 	Winner() (Player, error)
+	Stalemate() bool
 }
 
 
