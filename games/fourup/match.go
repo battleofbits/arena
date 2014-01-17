@@ -6,12 +6,55 @@ import (
 	"time"
 )
 
+// This level of indirection necessary to translate between int/string
+// representation. Maybe we should just store everything as strings.
+type FourUpBoard struct {
+	Board [NumRows][NumColumns]int8
+}
+
 type FourUpMatch struct {
 	Players       []*arena.Player
 	Started       time.Time
-	Board         string
+	Board         *FourUpBoard
 	CurrentPlayer *arena.Player
 	MoveId        int64
+}
+
+func getStringBoard(board *[NumRows][NumColumns]int8) [NumRows][NumColumns]string {
+	var stringBoard [NumRows][NumColumns]string
+	for row := int8(0); row < NumRows; row++ {
+		for column := int8(0); column < NumColumns; column++ {
+			if board[row][column] == Empty {
+				stringBoard[row][column] = ""
+			} else if board[row][column] == Red {
+				stringBoard[row][column] = "R"
+			} else if board[row][column] == Black {
+				stringBoard[row][column] = "B"
+			} else {
+				panic(fmt.Sprint("invalid value ", board[row][column], " for a board"))
+			}
+		}
+	}
+	return stringBoard
+}
+
+// Leaving this here till we're sure we don't need it, the method below
+// replaces this one.
+//func serializeTurn(match *FourUpMatch) *FourUpTurn {
+//return &FourUpTurn{
+//Href:  getMatchHref(match.Id),
+//Board: GetStringBoard(match.Board),
+//Turn:  fmt.Sprintf(BaseUri+"/players/%s", match.CurrentPlayer.Name),
+//Players: &TurnPlayers{
+//Red:   fmt.Sprintf(BaseUri+"/players/%s", match.RedPlayer.Name),
+//Black: fmt.Sprintf(BaseUri+"/players/%s", match.BlackPlayer.Name),
+//},
+//}
+//}
+
+func (b *FourUpBoard) MarshalJSON() ([]byte, error) {
+	sbd := getStringBoard(b.Board)
+	return json.Marshal(sbd)
 }
 
 // Retrieve the current player.
