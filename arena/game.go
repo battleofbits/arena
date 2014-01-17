@@ -3,7 +3,6 @@ package arena
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -99,53 +98,53 @@ func NotifySubscribers(move int8, match *FourUpMatch) {
 }
 
 // playerId - 1 for red, 2 for black. XXX, refactor this.
-func DoPlayerMove(player *Player, otherPlayer *Player, match *FourUpMatch, playerId int) error {
-	move, err := GetMove(match)
-	if err != nil {
-		DoForfeit(player, err)
-		DoGameOver(match, otherPlayer, player)
-		return err
-	}
-	err = DoNewMove(move, match)
-	if err != nil {
-		// XXX, do game over here, or switch based on the error type, etc.
-		return err
-	}
-	checkError(err)
-	if GameOver(*match.Board) {
-		DoGameOver(match, player, otherPlayer)
-		return errors.New("Game is over.")
-	}
-	if IsBoardFull(*match.Board) {
-		DoTieGame(match, player, otherPlayer)
-		return err
-	}
-	return nil
-}
+//func DoPlayerMove(player *Player, otherPlayer *Player, match *FourUpMatch, playerId int) error {
+//move, err := GetMove(match)
+//if err != nil {
+//DoForfeit(player, err)
+//DoGameOver(match, otherPlayer, player)
+//return err
+//}
+//err = DoNewMove(move, match)
+//if err != nil {
+//// XXX, do game over here, or switch based on the error type, etc.
+//return err
+//}
+//checkError(err)
+//if GameOver(*match.Board) {
+//DoGameOver(match, player, otherPlayer)
+//return errors.New("Game is over.")
+//}
+//if IsBoardFull(*match.Board) {
+//DoTieGame(match, player, otherPlayer)
+//return err
+//}
+//return nil
+//}
 
 func StartMatch(match *FourUpMatch, playerOne *Player, playerTwo *Player) {
-	go DoMatch(match, playerOne, playerTwo)
+	//go DoMatch(match, playerOne, playerTwo)
 }
 
 func DoTieGame(match *FourUpMatch, playerOne *Player, playerTwo *Player) {
 	fmt.Println("Tie Game!")
 }
 
-func DoMatch(match *FourUpMatch, redPlayer *Player, blackPlayer *Player) *FourUpMatch {
-	for {
-		match.CurrentPlayer = redPlayer
-		err := DoPlayerMove(redPlayer, blackPlayer, match, 1)
-		// XXX, evaluate positioning of this update.
-		if err != nil {
-			break
-		}
+//func DoMatch(match *FourUpMatch, redPlayer *Player, blackPlayer *Player) *FourUpMatch {
+//for {
+//match.CurrentPlayer = redPlayer
+//err := DoPlayerMove(redPlayer, blackPlayer, match, 1)
+//// XXX, evaluate positioning of this update.
+//if err != nil {
+//break
+//}
 
-		match.CurrentPlayer = blackPlayer
-		err = DoPlayerMove(blackPlayer, redPlayer, match, 2)
-		// XXX, evaluate logic here
-		if err != nil {
-			break
-		}
-	}
-	return match
-}
+//match.CurrentPlayer = blackPlayer
+//err = DoPlayerMove(blackPlayer, redPlayer, match, 2)
+//// XXX, evaluate logic here
+//if err != nil {
+//break
+//}
+//}
+//return match
+//}
