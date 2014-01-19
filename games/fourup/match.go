@@ -68,9 +68,9 @@ func CreateMatch(players []*engine.Player) (*Match, error) {
 	}, nil
 }
 
-// Apply the move to the board, write it to the database
+// Serialize the move from the user's response and apply the move to the board.
 // Returns a boolean (whether the game is over) and an error (whether the move
-// was invalid)
+// was invalid).
 func (m *Match) Play(player *engine.Player, data []byte) (bool, error) {
 	var move Move
 
@@ -79,7 +79,7 @@ func (m *Match) Play(player *engine.Player, data []byte) (bool, error) {
 		return true, err
 	}
 
-	err = m.Board.ApplyMove(move.Column, m.getCurrentTurnColor())
+	err = m.Board.applyMove(move.Column, m.getCurrentTurnColor())
 
 	if err != nil {
 		// XXX, assign the winner to be the other player.
@@ -87,7 +87,7 @@ func (m *Match) Play(player *engine.Player, data []byte) (bool, error) {
 		return true, err
 	}
 
-	if over, _ := m.Board.GameOver(); over {
+	if over, _ := m.Board.gameOver(); over {
 		m.winner = player
 		return true, nil
 	}
@@ -104,9 +104,9 @@ func (m *Match) getCurrentTurnColor() int8 {
 	}
 }
 
-// Update the match in the database
+// Update the match in the database.
 // Assumes the match has been initialized at some point
-func UpdateMatch(match *Match) error {
+func updateMatch(match *Match) error {
 	db := arena.GetConnection()
 	defer db.Close()
 	jsonBoard, err := json.Marshal(match.Board)

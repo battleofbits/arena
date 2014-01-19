@@ -6,13 +6,22 @@ import (
 	"fmt"
 )
 
-// Ints representing board state
+// Constant representing an empty board section
 const Empty = 0
+
+// Constant representing red chit on the board
 const Red = 1
+
+// Constant representing black chit on the board
 const Black = 2
 
+// Number of rows in a fourup board
 const NumRows = 6
+
+// Number of columns in a fourup board
 const NumColumns = 7
+
+// Number of consecutive chits you need to win the game
 const NumConsecutive = 4
 
 // Checks fourup board state
@@ -25,7 +34,7 @@ func (b Board) MarshalJSON() ([]byte, error) {
 	return json.Marshal(b.getStringBoard())
 }
 
-func (b Board) IsFull() bool {
+func (b Board) isFull() bool {
 	// will check the top row, which is always the last to fill up.
 	for column := 0; column < NumColumns; column++ {
 		if b[0][column] == Empty {
@@ -140,7 +149,7 @@ func checkSouthwestDiagonalWin(row int8, column int8, board Board) (bool, int8) 
 // Checks if a connect four exists
 // I'm sure there's some more efficient way to conduct these checks, but at
 // modern computer speeds, it really doesn't matter
-func (board Board) GameOver() (bool, int8) {
+func (board Board) gameOver() (bool, int8) {
 	for column := int8(0); column < NumColumns; column++ {
 		if over, winner := checkVerticalWin(column, board); over {
 			return true, winner
@@ -170,7 +179,7 @@ func (board Board) GameOver() (bool, int8) {
 }
 
 // Returns error if the move is invalid
-func (bp *Board) ApplyMove(move int8, color int8) error {
+func (bp *Board) applyMove(move int8, color int8) error {
 	if move >= NumColumns || move < 0 {
 		return errors.New(fmt.Sprintf("Move %d is invalid", move))
 	}
