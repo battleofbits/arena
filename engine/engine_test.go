@@ -34,8 +34,9 @@ func (match *TestMatch) Stalemate() bool {
 func TestUnreachableServer(t *testing.T) {
 	t.Parallel()
 
+	datastore := DummyDatastore{}
 	match := TestMatch{Current: &Player{MatchUrl: ""}}
-	err := PlayMatch(&match)
+	err := PlayMatch(&match, datastore)
 
 	if err == nil {
 		t.Fatalf("Server should have errored")
@@ -54,7 +55,7 @@ func TestWinningMove(t *testing.T) {
 
 	match := TestMatch{Current: &Player{MatchUrl: ts.URL}}
 
-	err := PlayMatch(&match)
+	err := PlayMatch(&match, DummyDatastore{})
 
 	if err != nil {
 		t.Logf("err:", err)

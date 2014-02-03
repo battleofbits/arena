@@ -22,7 +22,7 @@ func TestGameLogic(t *testing.T) {
 	if err != nil {
 		t.Fatalf(err.Error())
 	}
-	err = engine.PlayMatch(match)
+	err = engine.PlayMatch(match, engine.DummyDatastore{})
 	if err != nil {
 		t.Errorf(err.Error())
 	}

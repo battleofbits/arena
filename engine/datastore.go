@@ -16,34 +16,38 @@ const (
 )
 
 type Datastore interface {
-	CreatePlayer(string, string, string, string) (Player, error)
-	GetPlayers() []Player
+	CreatePlayer(string, string, string) (Player, error)
+	GetPlayers() ([]Player, error)
 	GetPlayerByName(string) (Player, error)
 	GetPlayerById(int) (Player, error)
+	SerializeMatch(Match) error
 }
 
 type DummyDatastore struct {
 }
 
-func (p DummyDatastore) GetPlayers() ([]*Player, error) {
-	return []*Player{}, nil
+func (p DummyDatastore) GetPlayers() ([]Player, error) {
+	return []Player{}, nil
 }
 
-func (p DummyDatastore) CreatePlayer(username string, name string, matchUrl string) (*Player, error) {
-	player := &Player{
+func (p DummyDatastore) CreatePlayer(username string, name string, matchUrl string) (Player, error) {
+	return Player{
 		Username: username,
 		Name:     name,
 		MatchUrl: matchUrl,
-	}
-	return player, nil
+	}, nil
 }
 
-func (p DummyDatastore) GetPlayerByName(name string) (*Player, error) {
-	return &Player{Name: name}, nil
+func (p DummyDatastore) SerializeMatch(match Match) error {
+	return nil
 }
 
-func (p DummyDatastore) GetPlayerById(playerId int) (*Player, error) {
-	return &Player{Id: 0}, nil
+func (p DummyDatastore) GetPlayerByName(name string) (Player, error) {
+	return Player{Name: name}, nil
+}
+
+func (p DummyDatastore) GetPlayerById(playerId int) (Player, error) {
+	return Player{Id: 0}, nil
 }
 
 type PostgresDatastore struct {
@@ -67,7 +71,7 @@ func (p PostgresDatastore) getConnection() (*sql.DB, error) {
 	return db, nil
 }
 
-func (p PostgresDatastore) GetPlayers() ([]*Player, error) {
+func (p PostgresDatastore) GetPlayers() ([]Player, error) {
 	db, err := p.getConnection()
 	if err != nil {
 		return nil, err
@@ -77,7 +81,7 @@ func (p PostgresDatastore) GetPlayers() ([]*Player, error) {
 	if err != nil {
 		return nil, err
 	}
-	var players []*Player
+	var players []Player
 	for rows.Next() {
 		var p Player
 		err = rows.Scan(&p.Username, &p.Name)
@@ -85,19 +89,23 @@ func (p PostgresDatastore) GetPlayers() ([]*Player, error) {
 			return nil, err
 		}
 		p.SetHref()
-		players = append(players, &p)
+		players = append(players, p)
 	}
 	return players, nil
 }
 
-func (p PostgresDatastore) CreatePlayer(username string, name string, matchUrl string) (*Player, error) {
+func (p PostgresDatastore) SerializeMatch(match Match) error {
+	return nil
+}
+
+func (p PostgresDatastore) CreatePlayer(username string, name string, matchUrl string) (Player, error) {
 	db, err := p.getConnection()
 	if err != nil {
-		return nil, err
+		return Player{}, err
 	}
 	defer db.Close()
 
-	player := &Player{
+	player := Player{
 		Username: username,
 		Name:     name,
 		MatchUrl: matchUrl,
@@ -112,32 +120,32 @@ func (p PostgresDatastore) CreatePlayer(username string, name string, matchUrl s
 		return p.GetPlayerByName(name)
 	}
 	if err != nil {
-		return nil, err
+		return Player{}, err
 	}
 	return player, nil
 }
 
-func (p PostgresDatastore) GetPlayerByName(name string) (*Player, error) {
+func (p PostgresDatastore) GetPlayerByName(name string) (Player, error) {
 	return p.getPlayer(queryPlayerName, name)
 }
 
-func (p PostgresDatastore) GetPlayerById(playerId int) (*Player, error) {
+func (p PostgresDatastore) GetPlayerById(playerId int) (Player, error) {
 	return p.getPlayer(queryPlayerId, playerId)
 }
 
-func (pd PostgresDatastore) getPlayer(query string, value interface{}) (*Player, error) {
+func (pd PostgresDatastore) getPlayer(query string, value interface{}) (Player, error) {
 	var p Player
 	db, err := pd.getConnection()
 	if err != nil {
-		return nil, err
+		return Player{}, err
 	}
 	defer db.Close()
 	err = db.QueryRow(query, value).Scan(&p.Id, &p.Username, &p.Name,
 		&p.MatchUrl, "")
 	if err != nil {
-		return &Player{}, err
+		return Player{}, err
 	} else {
 		p.SetHref()
-		return &p, nil
+		return p, nil
 	}
 }

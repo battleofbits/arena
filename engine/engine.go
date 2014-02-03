@@ -11,8 +11,8 @@ import (
 )
 
 const (
-	USER_AGENT = "battleofbits/0.1"
-	READ_TIME  = 2
+	USER_AGENT = "battleofbits/0.2"
+	READ_TIME  = 30
 )
 
 type Player struct {
@@ -111,7 +111,13 @@ func GetMove(match Match, player Player) ([]byte, error) {
 	return body, nil
 }
 
-func PlayMatch(match Match) error {
+func PlayMatch(match Match, datastore Datastore) error {
+	if datastore == nil {
+		datastore = PostgresDatastore{
+			url: "arena@localhost:5432/arena?sslmode=disable",
+		}
+	}
+	datastore.SerializeMatch(match)
 	for {
 		player := match.CurrentPlayer()
 
@@ -122,6 +128,7 @@ func PlayMatch(match Match) error {
 		}
 
 		gameover, err := match.Play(player, move)
+		datastore.SerializeMatch(match)
 
 		player = match.NextPlayer()
 
@@ -138,10 +145,5 @@ func PlayMatch(match Match) error {
 			_ = match.Winner()
 			return nil
 		}
-		//count += 1
-		//fmt.Println(count)
-		//if count > 50 {
-		//return nil
-		//}
 	}
 }

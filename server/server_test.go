@@ -85,44 +85,44 @@ func TestEmptyMatches(t *testing.T) {
 	}
 }
 
-type MatchResponses struct {
-	Matches []arena.MatchResponse `json:"matches"`
-}
+//type MatchResponses struct {
+//Matches []arena.MatchResponse `json:"matches"`
+//}
 
-func TestOneMatch(t *testing.T) {
-	r := mux.NewRouter()
-	r.HandleFunc("/games/four-up/matches", MatchesHandler)
-	req, _ := http.NewRequest("GET", "http://localhost/games/four-up/matches", nil)
+//func TestOneMatch(t *testing.T) {
+//r := mux.NewRouter()
+//r.HandleFunc("/games/four-up/matches", MatchesHandler)
+//req, _ := http.NewRequest("GET", "http://localhost/games/four-up/matches", nil)
 
-	match := &arena.FourUpMatch{
-		Id:     3,
-		Winner: nil,
-	}
-	matchesGetter = func() ([]*arena.FourUpMatch, error) {
-		return []*arena.FourUpMatch{match}, nil
-	}
+//match := &arena.FourUpMatch{
+//Id:     3,
+//Winner: nil,
+//}
+//matchesGetter = func() ([]*arena.FourUpMatch, error) {
+//return []*arena.FourUpMatch{match}, nil
+//}
 
-	defer reassignMatchesGetter(arena.GetMatches)
+//defer reassignMatchesGetter(arena.GetMatches)
 
-	resp := httptest.NewRecorder()
-	r.ServeHTTP(resp, req)
+//resp := httptest.NewRecorder()
+//r.ServeHTTP(resp, req)
 
-	var response MatchResponses
-	bits := resp.Body.Bytes()
-	fmt.Println(string(bits))
-	err := json.Unmarshal(bits, &response)
-	if err != nil {
-		t.Fatalf(err.Error())
-	}
-	if len(response.Matches) != 1 {
-		t.Fatalf("match length should have been 0, was %d", len(response.Matches))
-	}
-	mr := response.Matches[0]
-	fmt.Println(mr.Winner)
-	if mr.Id != 3 {
-		t.Errorf("id should have been 3, was %d", mr.Id)
-	}
-}
+//var response MatchResponses
+//bits := resp.Body.Bytes()
+//fmt.Println(string(bits))
+//err := json.Unmarshal(bits, &response)
+//if err != nil {
+//t.Fatalf(err.Error())
+//}
+//if len(response.Matches) != 1 {
+//t.Fatalf("match length should have been 0, was %d", len(response.Matches))
+//}
+//mr := response.Matches[0]
+//fmt.Println(mr.Winner)
+//if mr.Id != 3 {
+//t.Errorf("id should have been 3, was %d", mr.Id)
+//}
+//}
 
 func reassignMatchGetter(to func(int) (*arena.FourUpMatch, error)) {
 	matchGetter = to
