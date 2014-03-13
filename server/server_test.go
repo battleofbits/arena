@@ -61,30 +61,6 @@ func reassignMoveGetter(to func(int) []*Move) {
 	moveGetter = to
 }
 
-func TestEmptyMatches(t *testing.T) {
-	r := mux.NewRouter()
-	r.HandleFunc("/games/four-up/matches", MatchesHandler)
-	req, _ := http.NewRequest("GET", "http://localhost/games/four-up/matches", nil)
-
-	matchesGetter = func() ([]*arena.FourUpMatch, error) {
-		return []*arena.FourUpMatch{}, nil
-	}
-
-	defer reassignMatchesGetter(arena.GetMatches)
-
-	resp := httptest.NewRecorder()
-	var response Response
-	r.ServeHTTP(resp, req)
-	err := json.Unmarshal(resp.Body.Bytes(), &response)
-	if err != nil {
-		t.Fatalf(err.Error())
-	}
-	matches := response["matches"].([]interface{})
-	if len(matches) != 0 {
-		t.Fatalf("match length should have been 0, was %d", len(matches))
-	}
-}
-
 //type MatchResponses struct {
 //Matches []arena.MatchResponse `json:"matches"`
 //}
@@ -159,19 +135,5 @@ func TestSendInviteOK(t *testing.T) {
 	err := SendInvite(ts.URL, "fourup", "kevinburke")
 	if err != nil {
 		t.Errorf(err.Error())
-	}
-}
-
-func TestSendInviteError(t *testing.T) {
-	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusBadRequest)
-		fmt.Fprintln(w, "Hello, client")
-	}))
-	err := SendInvite(ts.URL, "fourup", "kevinburke")
-	if err != nil {
-		expected := "Received error status 400 Bad Request"
-		if !strings.Contains(err.Error(), expected) {
-			t.Errorf("got weird error %s, expected '%s'", err.Error(), expected)
-		}
 	}
 }

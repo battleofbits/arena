@@ -129,8 +129,8 @@ func DoServer() *mux.Router {
 	r := mux.NewRouter()
 	r.Handle("/players", headerMiddleware(PlayersHandler)).Methods("GET")
 	r.Handle("/players/{player}", headerMiddleware(PlayerHandler)).Methods("GET")
-	r.Handle("/games/fourup/matches", headerMiddleware(MatchesHandler)).Methods("GET")
-	r.Handle("/games/fourup/matches/{match}", headerMiddleware(MatchHandler)).Methods("GET")
+	//r.Handle("/games/fourup/matches", headerMiddleware(MatchesHandler)).Methods("GET")
+	//r.Handle("/games/fourup/matches/{match}", headerMiddleware(MatchHandler)).Methods("GET")
 	r.Handle("/games/fourup/matches/{match}/moves",
 		headerMiddleware(MovesHandler)).Methods("GET")
 	r.Handle("/players/{player}/invitations",

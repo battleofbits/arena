@@ -2,6 +2,7 @@ package main
 
 import (
 	"database/sql"
+	"encoding/json"
 	"fmt"
 	"github.com/battleofbits/arena/arena"
 	"github.com/gorilla/mux"
@@ -35,50 +36,50 @@ var PlayerHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request
 	fmt.Fprint(w, Response{"players": []*arena.Player{player}})
 })
 
-var matchesGetter = arena.GetMatches
-var matchGetter = arena.GetMatch
+//var matchesGetter = arena.GetMatches
+//var matchGetter = arena.GetMatch
 
-var MatchHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-	matchId := mux.Vars(r)["match"]
-	id, err := strconv.Atoi(matchId)
-	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		fmt.Fprint(w, Response{"error": err.Error()})
-		return
-	}
-	match, err := matchGetter(id)
-	if err != nil {
-		if err == sql.ErrNoRows {
-			w.WriteHeader(http.StatusNotFound)
-			fmt.Fprint(w, Response{
-				"error": fmt.Sprintf("No matches with id %s", matchId),
-			})
-			return
-		} else {
-			w.WriteHeader(http.StatusBadRequest)
-			fmt.Fprint(w, Response{"error": err.Error()})
-			return
-		}
-	}
-	fmt.Fprint(w, Response{"matches": []*arena.FourUpMatch{match}})
-})
+//var MatchHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+//matchId := mux.Vars(r)["match"]
+//id, err := strconv.Atoi(matchId)
+//if err != nil {
+//w.WriteHeader(http.StatusBadRequest)
+//fmt.Fprint(w, Response{"error": err.Error()})
+//return
+//}
+//match, err := matchGetter(id)
+//if err != nil {
+//if err == sql.ErrNoRows {
+//w.WriteHeader(http.StatusNotFound)
+//fmt.Fprint(w, Response{
+//"error": fmt.Sprintf("No matches with id %s", matchId),
+//})
+//return
+//} else {
+//w.WriteHeader(http.StatusBadRequest)
+//fmt.Fprint(w, Response{"error": err.Error()})
+//return
+//}
+//}
+//fmt.Fprint(w, Response{"matches": []*arena.FourUpMatch{match}})
+//})
 
-var MatchesHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-	matches, err := matchesGetter()
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		fmt.Println(err.Error())
-		fmt.Fprint(w, Response{"error": "We experienced an error. Please try again"})
-		return
-	}
-	if len(matches) == 0 {
-		// json.Marshal returns null instead of an empty list for a pointer
-		// with no data.
-		fmt.Fprint(w, Response{"matches": []string{}})
-	} else {
-		fmt.Fprint(w, Response{"matches": matches})
-	}
-})
+//var MatchesHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+//matches, err := matchesGetter()
+//if err != nil {
+//w.WriteHeader(http.StatusInternalServerError)
+//fmt.Println(err.Error())
+//fmt.Fprint(w, Response{"error": "We experienced an error. Please try again"})
+//return
+//}
+//if len(matches) == 0 {
+//// json.Marshal returns null instead of an empty list for a pointer
+//// with no data.
+//fmt.Fprint(w, Response{"matches": []string{}})
+//} else {
+//fmt.Fprint(w, Response{"matches": matches})
+//}
+//})
 
 // Handle an invitation to play a new game
 var InvitationsHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -177,7 +178,7 @@ var InvitationsHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Re
 		fmt.Fprint(w, Response{"error": err.Error()})
 		return
 	} else {
-		// XXX check ordering here
+		// Fork off a goroutine to run the match.
 		mtch, err := arena.CreateMatch(invitedPlayer, requestingPlayer)
 		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)
@@ -191,20 +192,10 @@ var InvitationsHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Re
 		finishedNullable := &arena.NullTime{
 			Valid: false,
 		}
-		mr := &arena.MatchResponse{
-			Id:          mtch.Id,
-			CurrentMove: mtch.CurrentPlayer.Name,
-			Winner:      nil,
-			Started:     startNullable,
-			Finished:    finishedNullable,
-			Board:       mtch.Board,
-			RedPlayer:   mtch.RedPlayer.Name,
-			BlackPlayer: mtch.BlackPlayer.Name,
-		}
-		mr.SetHref()
-		w.Header().Set("Location", mr.Href)
+		mr, err := json.Marshal(mtch)
+		//w.Header().Set("Location", mr.Href)
 		w.WriteHeader(http.StatusCreated)
-		fmt.Fprint(w, Response{"matches": []*arena.MatchResponse{mr}})
+		fmt.Fprint(w, Response{"matches": mr})
 		// XXX check ordering here
 		arena.StartMatch(mtch, invitedPlayer, requestingPlayer)
 	}
