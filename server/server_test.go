@@ -3,12 +3,12 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/battleofbits/arena/arena"
+	//"github.com/battleofbits/arena/arena"
 	"github.com/gorilla/mux"
 	"net/http"
 	"net/http/httptest"
 	//"reflect"
-	"strings"
+	//"strings"
 	"testing"
 	"time"
 )
@@ -100,13 +100,13 @@ func reassignMoveGetter(to func(int) []*Move) {
 //}
 //}
 
-func reassignMatchGetter(to func(int) (*arena.FourUpMatch, error)) {
-	matchGetter = to
-}
+//func reassignMatchGetter(to func(int) (*arena.FourUpMatch, error)) {
+//matchGetter = to
+//}
 
-func reassignMatchesGetter(to func() ([]*arena.FourUpMatch, error)) {
-	matchesGetter = to
-}
+//func reassignMatchesGetter(to func() ([]*arena.FourUpMatch, error)) {
+//matchesGetter = to
+//}
 
 func TestSendInviteOK(t *testing.T) {
 	t.Parallel()
