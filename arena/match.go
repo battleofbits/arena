@@ -13,9 +13,9 @@ type NullString struct {
 	Valid  bool
 }
 
-func CreateMatch(*Player, *Player) *Match {
+//func CreateMatch(*Player, *Player) *Match {
 
-}
+//}
 
 func (n NullString) MarshalJSON() ([]byte, error) {
 	if !n.Valid {

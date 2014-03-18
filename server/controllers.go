@@ -2,11 +2,11 @@ package main
 
 import (
 	"database/sql"
-	"encoding/json"
+	//"encoding/json"
 	"fmt"
 	"github.com/battleofbits/arena/arena"
 	"github.com/gorilla/mux"
-	"math/rand"
+	//"math/rand"
 	"net/http"
 	"strconv"
 )
@@ -83,122 +83,123 @@ var PlayerHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request
 
 // Handle an invitation to play a new game
 var InvitationsHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-	err := r.ParseForm()
-	if err != nil {
-		// XXX, middleware etc
-		w.WriteHeader(http.StatusBadRequest)
-		fmt.Fprint(w, Response{"error": err.Error()})
-		return
-	}
-	game := r.Form.Get("Game")
-	if game == "" {
-		w.WriteHeader(http.StatusBadRequest)
-		fmt.Fprint(w, Response{"error": "No game specified"})
-		return
-	}
-	invitedPlayerName := mux.Vars(r)["player"]
-	if invitedPlayerName == "" {
-		w.WriteHeader(http.StatusBadRequest)
-		fmt.Fprint(w, Response{"error": "No player specified"})
-		return
-	}
-	invitedPlayer, err := arena.GetPlayerByName(invitedPlayerName)
-	if err != nil {
-		if err == sql.ErrNoRows {
-			w.WriteHeader(http.StatusNotFound)
-			fmt.Fprint(w, Response{
-				"error": fmt.Sprintf("No players with name %s", invitedPlayerName),
-			})
-		} else {
-			// XXX, middleware etc
-			w.WriteHeader(http.StatusBadRequest)
-			fmt.Fprint(w, Response{"error": err.Error()})
-		}
-		return
-	}
+	//err := r.ParseForm()
+	//if err != nil {
+	//// XXX, middleware etc
+	//w.WriteHeader(http.StatusBadRequest)
+	//fmt.Fprint(w, Response{"error": err.Error()})
+	//return
+	//}
+	//game := r.Form.Get("Game")
+	//if game == "" {
+	//w.WriteHeader(http.StatusBadRequest)
+	//fmt.Fprint(w, Response{"error": "No game specified"})
+	//return
+	//}
+	//invitedPlayerName := mux.Vars(r)["player"]
+	//if invitedPlayerName == "" {
+	//w.WriteHeader(http.StatusBadRequest)
+	//fmt.Fprint(w, Response{"error": "No player specified"})
+	//return
+	//}
+	//invitedPlayer, err := arena.GetPlayerByName(invitedPlayerName)
+	//if err != nil {
+	//if err == sql.ErrNoRows {
+	//w.WriteHeader(http.StatusNotFound)
+	//fmt.Fprint(w, Response{
+	//"error": fmt.Sprintf("No players with name %s", invitedPlayerName),
+	//})
+	//} else {
+	//// XXX, middleware etc
+	//w.WriteHeader(http.StatusBadRequest)
+	//fmt.Fprint(w, Response{"error": err.Error()})
+	//}
+	//return
+	//}
 
-	if invitedPlayer == nil {
-		w.WriteHeader(http.StatusBadRequest)
-		fmt.Fprint(w, Response{
-			"error": fmt.Sprintf("player %s not found", invitedPlayerName),
-		})
-		return
-	}
+	//if invitedPlayer == nil {
+	//w.WriteHeader(http.StatusBadRequest)
+	//fmt.Fprint(w, Response{
+	//"error": fmt.Sprintf("player %s not found", invitedPlayerName),
+	//})
+	//return
+	//}
 
-	// XXX, pull from authentication or parameters
-	requestingPlayerName := "kevinburke"
+	//// XXX, pull from authentication or parameters
+	//requestingPlayerName := "kevinburke"
 
-	// XXX modularize this and above
-	requestingPlayer, err := arena.GetPlayerByName(requestingPlayerName)
-	if err != nil {
-		if err == sql.ErrNoRows {
-			w.WriteHeader(http.StatusNotFound)
-			fmt.Fprint(w, Response{
-				"error": fmt.Sprintf("No players with name %s", requestingPlayerName),
-			})
-		} else {
-			// XXX, middleware etc
-			w.WriteHeader(http.StatusBadRequest)
-			fmt.Fprint(w, Response{"error": err.Error()})
-		}
-		return
-	}
+	//// XXX modularize this and above
+	//requestingPlayer, err := arena.GetPlayerByName(requestingPlayerName)
+	//if err != nil {
+	//if err == sql.ErrNoRows {
+	//w.WriteHeader(http.StatusNotFound)
+	//fmt.Fprint(w, Response{
+	//"error": fmt.Sprintf("No players with name %s", requestingPlayerName),
+	//})
+	//} else {
+	//// XXX, middleware etc
+	//w.WriteHeader(http.StatusBadRequest)
+	//fmt.Fprint(w, Response{"error": err.Error()})
+	//}
+	//return
+	//}
 
-	if requestingPlayer == nil {
-		w.WriteHeader(http.StatusBadRequest)
-		fmt.Fprint(w, Response{
-			"error": fmt.Sprintf("player %s not found", requestingPlayerName),
-		})
-		return
-	}
+	//if requestingPlayer == nil {
+	//w.WriteHeader(http.StatusBadRequest)
+	//fmt.Fprint(w, Response{
+	//"error": fmt.Sprintf("player %s not found", requestingPlayerName),
+	//})
+	//return
+	//}
 
-	incomingFirstMove := r.Form.Get("FirstMove")
-	var playerWithFirstMove string
-	if incomingFirstMove == "random" || incomingFirstMove == "" {
-		if rand.Intn(2) == 0 {
-			playerWithFirstMove = requestingPlayerName
-		} else {
-			playerWithFirstMove = invitedPlayerName
-		}
-	} else if incomingFirstMove != requestingPlayerName &&
-		incomingFirstMove != invitedPlayerName {
-		w.WriteHeader(http.StatusBadRequest)
-		fmt.Fprint(w, Response{
-			"error": fmt.Sprintf("first move value was %s but player %s is "+
-				"not in the game", incomingFirstMove, invitedPlayerName),
-		})
-		return
-	} else {
-		playerWithFirstMove = incomingFirstMove
-	}
+	//incomingFirstMove := r.Form.Get("FirstMove")
+	//var playerWithFirstMove string
+	//if incomingFirstMove == "random" || incomingFirstMove == "" {
+	//if rand.Intn(2) == 0 {
+	//playerWithFirstMove = requestingPlayerName
+	//} else {
+	//playerWithFirstMove = invitedPlayerName
+	//}
+	//} else if incomingFirstMove != requestingPlayerName &&
+	//incomingFirstMove != invitedPlayerName {
+	//w.WriteHeader(http.StatusBadRequest)
+	//fmt.Fprint(w, Response{
+	//"error": fmt.Sprintf("first move value was %s but player %s is "+
+	//"not in the game", incomingFirstMove, invitedPlayerName),
+	//})
+	//return
+	//} else {
+	//playerWithFirstMove = incomingFirstMove
+	//}
 
-	err = SendInvite(invitedPlayer.InviteUrl, game, playerWithFirstMove)
-	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		fmt.Fprint(w, Response{"error": err.Error()})
-		return
-	} else {
-		// Fork off a goroutine to run the match.
-		mtch, err := arena.CreateMatch(invitedPlayer, requestingPlayer)
-		if err != nil {
-			w.WriteHeader(http.StatusBadRequest)
-			fmt.Fprint(w, Response{"error": err.Error()})
-			return
-		}
-		startNullable := &arena.NullTime{
-			Valid: true,
-			Time:  mtch.Started,
-		}
-		finishedNullable := &arena.NullTime{
-			Valid: false,
-		}
-		mr, err := json.Marshal(mtch)
-		//w.Header().Set("Location", mr.Href)
-		w.WriteHeader(http.StatusCreated)
-		fmt.Fprint(w, Response{"matches": mr})
-		// XXX check ordering here
-		arena.StartMatch(mtch, invitedPlayer, requestingPlayer)
-	}
+	//err = SendInvite(invitedPlayer.InviteUrl, game, playerWithFirstMove)
+	//if err != nil {
+	//w.WriteHeader(http.StatusBadRequest)
+	//fmt.Fprint(w, Response{"error": err.Error()})
+	//return
+	//} else {
+	//// Fork off a goroutine to run the match.
+	//if err != nil {
+	//w.WriteHeader(http.StatusBadRequest)
+	//fmt.Fprint(w, Response{"error": err.Error()})
+	//return
+	//}
+	//startNullable := &arena.NullTime{
+	//Valid: true,
+	//Time:  mtch.Started,
+	//}
+	//finishedNullable := &arena.NullTime{
+	//Valid: false,
+	//}
+	//mr, err := json.Marshal(mtch)
+	////w.Header().Set("Location", mr.Href)
+	//w.WriteHeader(http.StatusCreated)
+	//fmt.Fprint(w, Response{"matches": mr})
+
+	//match := Match{}
+	//datastore := Datastore{}
+	//engine.PlayMatch(match, datastore)
+	//}
 })
 
 // This is reassigned in tests
