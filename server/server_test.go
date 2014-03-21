@@ -129,6 +129,52 @@ func TestInviteUnknownPlayer(t *testing.T) {
 	}
 }
 
+func GetFakePlayer(name string) *arena.Player {
+	username := fmt.Sprintf("%s username", name)
+	return &arena.Player{
+		Id:        1,
+		Name:      name,
+		Username:  username,
+		InviteUrl: "http://example.com/invite",
+		MatchUrl:  "http://example.com/match",
+	}
+}
+
+// Sending an invitation without specifying a game should return a 400 Bad
+// Request.
+func TestInviteInvalidMove(t *testing.T) {
+	r := mux.NewRouter()
+	buf := bytes.NewBufferString("{\"Game\": \"fourup\", \"FirstMove\": \"invalid-parameter\"}")
+
+	// Reassign the player getter function to return no database rows.
+	playerGetter = func(playerName string) (*arena.Player, error) {
+		return GetFakePlayer(playerName), nil
+	}
+	// Once the test finishes, reassign it again to the proper value
+	defer reassignPlayerGetter(arena.GetPlayerByName)
+
+	r.HandleFunc("/players/{player}/invitations", InvitationsHandler)
+	req, _ := http.NewRequest("POST", "http://localhost/players/kevinburke/invitations", buf)
+	req.Header.Add("Content-Type", "application/json")
+	resp := httptest.NewRecorder()
+	r.ServeHTTP(resp, req)
+	if resp.Code != 400 {
+		t.Errorf("Expected status 400 but got %d", resp.Code)
+	}
+	var err Error
+	decodingErr := json.Unmarshal(resp.Body.Bytes(), &err)
+	if decodingErr != nil {
+		fmt.Println(string(resp.Body.Bytes()))
+		t.Fatalf(decodingErr.Error())
+	}
+	errMsg := "First move value was invalid-parameter but that player is not playing this game"
+	if err.Message != errMsg {
+		t.Errorf("Expected error message to read '%s', was '%s'", errMsg, err.Message)
+	}
+	if err.Type != "invalid-first-move" {
+		t.Errorf("Expected error type to be 'invalid-first-move', was '%s'", err.Type)
+	}
+}
 func reassignPlayerGetter(to func(string) (*arena.Player, error)) {
 	playerGetter = to
 }

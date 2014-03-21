@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"github.com/battleofbits/arena/arena"
 	"github.com/gorilla/mux"
-	//"math/rand"
+	"math/rand"
 	"net/http"
 	"strconv"
 )
@@ -84,8 +84,9 @@ var PlayerHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request
 //})
 
 type InviteBody struct {
-	Game   string
-	Player string
+	Game      string
+	Player    string
+	FirstMove string
 }
 
 func abortWithError(err error, w http.ResponseWriter) {
@@ -141,62 +142,41 @@ var InvitationsHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Re
 		}
 		return
 	}
-	//fmt.Println(invitedPlayer.
 
-	//if invitedPlayer == nil {
-	//w.WriteHeader(http.StatusBadRequest)
-	//fmt.Fprint(w, Response{
-	//"error": fmt.Sprintf("player %s not found", invitedPlayerName),
-	//})
-	//return
-	//}
+	// XXX, pull from authentication or parameters
+	requestingPlayerName := "kevinburke"
 
-	//// XXX, pull from authentication or parameters
-	//requestingPlayerName := "kevinburke"
+	// XXX modularize this and above
+	_, err = playerGetter(requestingPlayerName)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			w.WriteHeader(http.StatusNotFound)
+			fmt.Fprint(w, Response{
+				"message": fmt.Sprintf("No players with name %s", requestingPlayerName),
+				"type":    "invalid-requesting-player",
+			})
+		} else {
+			abortWithError(err, w)
+		}
+		return
+	}
 
-	//// XXX modularize this and above
-	//requestingPlayer, err := arena.GetPlayerByName(requestingPlayerName)
-	//if err != nil {
-	//if err == sql.ErrNoRows {
-	//w.WriteHeader(http.StatusNotFound)
-	//fmt.Fprint(w, Response{
-	//"error": fmt.Sprintf("No players with name %s", requestingPlayerName),
-	//})
-	//} else {
-	//// XXX, middleware etc
-	//w.WriteHeader(http.StatusBadRequest)
-	//fmt.Fprint(w, Response{"error": err.Error()})
-	//}
-	//return
-	//}
-
-	//if requestingPlayer == nil {
-	//w.WriteHeader(http.StatusBadRequest)
-	//fmt.Fprint(w, Response{
-	//"error": fmt.Sprintf("player %s not found", requestingPlayerName),
-	//})
-	//return
-	//}
-
-	//incomingFirstMove := r.Form.Get("FirstMove")
-	//var playerWithFirstMove string
-	//if incomingFirstMove == "random" || incomingFirstMove == "" {
-	//if rand.Intn(2) == 0 {
-	//playerWithFirstMove = requestingPlayerName
-	//} else {
-	//playerWithFirstMove = invitedPlayerName
-	//}
-	//} else if incomingFirstMove != requestingPlayerName &&
-	//incomingFirstMove != invitedPlayerName {
-	//w.WriteHeader(http.StatusBadRequest)
-	//fmt.Fprint(w, Response{
-	//"error": fmt.Sprintf("first move value was %s but player %s is "+
-	//"not in the game", incomingFirstMove, invitedPlayerName),
-	//})
-	//return
-	//} else {
-	//playerWithFirstMove = incomingFirstMove
-	//}
+	var playerWithFirstMove string
+	if ivb.FirstMove == "random" || ivb.FirstMove == "" {
+		if rand.Intn(2) == 0 {
+			playerWithFirstMove = requestingPlayerName
+		} else {
+			playerWithFirstMove = invitedPlayerName
+		}
+	} else if ivb.FirstMove != requestingPlayerName &&
+		ivb.FirstMove != invitedPlayerName {
+		msg := fmt.Sprintf("First move value was %s but that player is not playing this game", ivb.FirstMove)
+		abortWithTypedError(errors.New(msg), "invalid-first-move", w)
+		return
+	} else {
+		playerWithFirstMove = ivb.FirstMove
+	}
+	fmt.Println(playerWithFirstMove)
 
 	//err = SendInvite(invitedPlayer.InviteUrl, game, playerWithFirstMove)
 	//if err != nil {
