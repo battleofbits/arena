@@ -100,9 +100,8 @@ func TestInviteUnknownPlayer(t *testing.T) {
 	playerGetter = func(playerName string) (*arena.Player, error) {
 		return nil, sql.ErrNoRows
 	}
+	// Once the test finishes, reassign it again to the proper value
 	defer reassignPlayerGetter(arena.GetPlayerByName)
-
-	t.Parallel()
 
 	r := mux.NewRouter()
 	buf := bytes.NewBufferString("{\"Game\": \"fourup\"}")
