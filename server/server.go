@@ -28,6 +28,11 @@ type Moves struct {
 	Moves []*Move `json:"moves"`
 }
 
+type Error struct {
+	Type    string `json:"type"`
+	Message string `json:"message"`
+}
+
 type InviteRequest struct {
 	Game             string `json:"game"`
 	RequestingPlayer string `json:"requesting_player"`

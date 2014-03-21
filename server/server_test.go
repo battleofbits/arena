@@ -1,9 +1,11 @@
 package main
 
 import (
+	"bytes"
+	"database/sql"
 	"encoding/json"
 	"fmt"
-	//"github.com/battleofbits/arena/arena"
+	"github.com/battleofbits/arena/arena"
 	"github.com/gorilla/mux"
 	"net/http"
 	"net/http/httptest"
@@ -13,6 +15,8 @@ import (
 	"time"
 )
 
+// Retrieving a list of moves should return the expected response.
+// This mocks out the database call to fetch the list of moves.
 func TestMoves(t *testing.T) {
 	r := mux.NewRouter()
 	r.HandleFunc("/games/four-up/matches/{match}/moves", MovesHandler)
@@ -30,7 +34,6 @@ func TestMoves(t *testing.T) {
 	moveGetter = func(moveId int) []*Move {
 		return []*Move{move}
 	}
-
 	defer reassignMoveGetter(getMoves)
 
 	resp := httptest.NewRecorder()
@@ -59,6 +62,76 @@ func TestMoves(t *testing.T) {
 
 func reassignMoveGetter(to func(int) []*Move) {
 	moveGetter = to
+}
+
+// Sending an invitation without specifying a game should return a 400 Bad
+// Request.
+func TestInviteNoGame(t *testing.T) {
+	t.Parallel()
+
+	r := mux.NewRouter()
+	buf := bytes.NewBufferString("{}")
+	r.HandleFunc("/players/{player}/invitations", InvitationsHandler)
+	req, _ := http.NewRequest("POST", "http://localhost/players/kevinburke/invitations", buf)
+	req.Header.Add("Content-Type", "application/json")
+	resp := httptest.NewRecorder()
+	r.ServeHTTP(resp, req)
+	if resp.Code != 400 {
+		t.Errorf("Expected status 400 but got %d", resp.Code)
+	}
+	var err Error
+	decodingErr := json.Unmarshal(resp.Body.Bytes(), &err)
+	if decodingErr != nil {
+		fmt.Println(string(resp.Body.Bytes()))
+		t.Fatalf(decodingErr.Error())
+	}
+	if err.Message != "No game specified" {
+		t.Errorf("Expected error message to read 'No game specified', was '%s'", err.Message)
+	}
+	if err.Type != "invalid-game" {
+		t.Errorf("Expected error type to be 'invalid-game', was '%s'", err.Type)
+	}
+}
+
+// Sending an invitation to an unknown player should return a 400 Bad Request.
+func TestInviteUnknownPlayer(t *testing.T) {
+
+	// Reassign the player getter function to return no database rows.
+	playerGetter = func(playerName string) (*arena.Player, error) {
+		return nil, sql.ErrNoRows
+	}
+	defer reassignPlayerGetter(arena.GetPlayerByName)
+
+	t.Parallel()
+
+	r := mux.NewRouter()
+	buf := bytes.NewBufferString("{\"Game\": \"fourup\"}")
+	r.HandleFunc("/players/{player}/invitations", InvitationsHandler)
+	req, _ := http.NewRequest("POST", "http://localhost/players/foobar/invitations", buf)
+	req.Header.Add("Content-Type", "application/json")
+	resp := httptest.NewRecorder()
+	r.ServeHTTP(resp, req)
+	if resp.Code != 404 {
+		t.Errorf("Expected status 404 but got %d", resp.Code)
+	}
+	var err Error
+	decodingErr := json.Unmarshal(resp.Body.Bytes(), &err)
+	if decodingErr != nil {
+		fmt.Println(string(resp.Body.Bytes()))
+		t.Fatalf(decodingErr.Error())
+	}
+	playerErrMsg := "No players with name foobar"
+	playerErrType := "invalid-player"
+	if err.Message != playerErrMsg {
+		t.Errorf("Expected error message to read '%s', was '%s'", playerErrMsg, err.Message)
+	}
+	if err.Type != playerErrType {
+		t.Errorf("Expected error type to be '%s', was '%s'", playerErrType, err.Type)
+	}
+}
+
+func reassignPlayerGetter(to func(string) (*arena.Player, error)) {
+	playerGetter = to
 }
 
 //type MatchResponses struct {
@@ -112,7 +185,7 @@ func TestSendInviteOK(t *testing.T) {
 	t.Parallel()
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != "POST" {
-			t.Errorf("expected method to be POST, instead was %s", r.Method)
+			t.Fatalf("expected method to be POST, instead was %s", r.Method)
 		}
 		decoder := json.NewDecoder(r.Body)
 		var is *InviteRequest
