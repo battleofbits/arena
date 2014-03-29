@@ -6,3 +6,5 @@ install:
   - make deps
 script:
   go test ./...
+notifications:
+    on_failure: always
