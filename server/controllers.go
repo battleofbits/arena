@@ -127,7 +127,8 @@ var InvitationsHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Re
 		abortWithTypedError(errors.New("No player specified"), "invalid-player", w)
 		return
 	}
-	_, err = playerGetter(invitedPlayerName)
+
+	invitedPlayer, err := playerGetter(invitedPlayerName)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			w.WriteHeader(http.StatusNotFound)
@@ -178,11 +179,12 @@ var InvitationsHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Re
 	}
 	fmt.Println(playerWithFirstMove)
 
-	//err = SendInvite(invitedPlayer.InviteUrl, game, playerWithFirstMove)
-	//if err != nil {
-	//w.WriteHeader(http.StatusBadRequest)
-	//fmt.Fprint(w, Response{"error": err.Error()})
-	//return
+	err = SendInvite(invitedPlayer.InviteUrl, ivb.Game, playerWithFirstMove)
+	if err != nil {
+		abortWithError(err, w)
+		return
+	}
+
 	//} else {
 	//// Fork off a goroutine to run the match.
 	//if err != nil {

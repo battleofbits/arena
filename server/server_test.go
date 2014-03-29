@@ -175,6 +175,8 @@ func TestInviteInvalidMove(t *testing.T) {
 		t.Errorf("Expected error type to be 'invalid-first-move', was '%s'", err.Type)
 	}
 }
+
+// Reassign the pointer used in the server function to retrieve a player.
 func reassignPlayerGetter(to func(string) (*arena.Player, error)) {
 	playerGetter = to
 }
