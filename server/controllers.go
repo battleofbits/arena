@@ -7,6 +7,8 @@ import (
 	"errors"
 	"fmt"
 	"github.com/battleofbits/arena/arena"
+	"github.com/battleofbits/arena/engine"
+	"github.com/battleofbits/arena/games/fourup"
 	"github.com/gorilla/mux"
 	"math/rand"
 	"net/http"
@@ -21,7 +23,8 @@ var PlayersHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Reques
 
 var PlayerHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 	playerName := mux.Vars(r)["player"]
-	player, err := arena.GetPlayerByName(playerName)
+	datastore := getDatastore()
+	player, err := datastore.GetPlayerByName(playerName)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			w.WriteHeader(http.StatusNotFound)
@@ -35,7 +38,7 @@ var PlayerHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request
 		}
 		return
 	}
-	fmt.Fprint(w, Response{"players": []*arena.Player{player}})
+	fmt.Fprint(w, Response{"players": []*engine.Player{&player}})
 })
 
 //var matchesGetter = arena.GetMatches
@@ -98,8 +101,19 @@ func abortWithTypedError(err error, typ string, w http.ResponseWriter) {
 	fmt.Fprint(w, Response{"type": typ, "message": err.Error()})
 }
 
+var getDatastore = func() engine.Datastore {
+	return engine.GetPostgresDatastore()
+}
+
+var originalDatastoreGetter = getDatastore
+
+var reassignDatastoreGetter = func() {
+	getDatastore = originalDatastoreGetter
+}
+
 // Handle an invitation to play a new game
 var InvitationsHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	datastore := getDatastore()
 	var ivb InviteBody
 	var buf bytes.Buffer
 	_, err := buf.ReadFrom(r.Body)
@@ -128,7 +142,7 @@ var InvitationsHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	invitedPlayer, err := playerGetter(invitedPlayerName)
+	invitedPlayer, err := datastore.GetPlayerByName(invitedPlayerName)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			w.WriteHeader(http.StatusNotFound)
@@ -148,7 +162,7 @@ var InvitationsHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Re
 	requestingPlayerName := "kevinburke"
 
 	// XXX modularize this and above
-	_, err = playerGetter(requestingPlayerName)
+	requestingPlayer, err := datastore.GetPlayerByName(requestingPlayerName)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			w.WriteHeader(http.StatusNotFound)
@@ -177,7 +191,6 @@ var InvitationsHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Re
 	} else {
 		playerWithFirstMove = ivb.FirstMove
 	}
-	fmt.Println(playerWithFirstMove)
 
 	err = SendInvite(invitedPlayer.InviteUrl, ivb.Game, playerWithFirstMove)
 	if err != nil {
@@ -185,13 +198,8 @@ var InvitationsHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	//} else {
-	//// Fork off a goroutine to run the match.
-	//if err != nil {
-	//w.WriteHeader(http.StatusBadRequest)
-	//fmt.Fprint(w, Response{"error": err.Error()})
-	//return
-	//}
+	// Fork off a goroutine to run the match.
+
 	//startNullable := &arena.NullTime{
 	//Valid: true,
 	//Time:  mtch.Started,
@@ -204,16 +212,17 @@ var InvitationsHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Re
 	//w.WriteHeader(http.StatusCreated)
 	//fmt.Fprint(w, Response{"matches": mr})
 
-	//match := Match{}
-	//datastore := Datastore{}
-	//engine.PlayMatch(match, datastore)
+	players := []*engine.Player{&invitedPlayer, &requestingPlayer}
+	match, err := fourup.CreateMatch(players)
+	if err != nil {
+		abortWithError(err, w)
+	}
+	engine.PlayMatch(match, datastore)
 	//}
 })
 
 // This is reassigned in tests
 var moveGetter = getMoves
-
-var playerGetter = arena.GetPlayerByName
 
 var MovesHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 	idStr := mux.Vars(r)["match"]

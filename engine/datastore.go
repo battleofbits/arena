@@ -26,6 +26,18 @@ type Datastore interface {
 type DummyDatastore struct {
 }
 
+type NotFoundDatastore struct {
+	DummyDatastore
+}
+
+func (p NotFoundDatastore) GetPlayerByName(name string) (Player, error) {
+	return Player{}, sql.ErrNoRows
+}
+
+func (p NotFoundDatastore) GetPlayerById(playerId int) (Player, error) {
+	return Player{}, sql.ErrNoRows
+}
+
 func (p DummyDatastore) GetPlayers() ([]Player, error) {
 	return []Player{}, nil
 }
@@ -52,6 +64,12 @@ func (p DummyDatastore) GetPlayerById(playerId int) (Player, error) {
 
 type PostgresDatastore struct {
 	url string
+}
+
+func GetPostgresDatastore() Datastore {
+	return PostgresDatastore{
+		url: "arena@localhost:5432/arena?sslmode=disable",
+	}
 }
 
 // rawUrl := "PostgresDatastore://PostgresDatastore_arena@localhost:5432/arena?sslmode=disable"

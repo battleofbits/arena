@@ -18,10 +18,11 @@ const (
 type Player struct {
 	Id int64 `json:"-"`
 	// The player's friendly name
-	Name     string `json:"name"`
-	Username string `json:"username"`
-	MatchUrl string `json:"-"`
-	Href     string `json:"href"`
+	Name      string `json:"name"`
+	Username  string `json:"username"`
+	MatchUrl  string `json:"-"`
+	InviteUrl string `json:"-"`
+	Href      string `json:"href"`
 }
 
 type Players struct {

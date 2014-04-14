@@ -2,10 +2,10 @@ package main
 
 import (
 	"bytes"
-	"database/sql"
 	"encoding/json"
 	"fmt"
 	"github.com/battleofbits/arena/arena"
+	"github.com/battleofbits/arena/engine"
 	"github.com/gorilla/mux"
 	"net/http"
 	"net/http/httptest"
@@ -97,11 +97,10 @@ func TestInviteNoGame(t *testing.T) {
 func TestInviteUnknownPlayer(t *testing.T) {
 
 	// Reassign the player getter function to return no database rows.
-	playerGetter = func(playerName string) (*arena.Player, error) {
-		return nil, sql.ErrNoRows
+	getDatastore = func() engine.Datastore {
+		return engine.NotFoundDatastore{}
 	}
-	// Once the test finishes, reassign it again to the proper value
-	defer reassignPlayerGetter(arena.GetPlayerByName)
+	defer reassignDatastoreGetter()
 
 	r := mux.NewRouter()
 	buf := bytes.NewBufferString("{\"Game\": \"fourup\"}")
@@ -147,11 +146,10 @@ func TestInviteInvalidMove(t *testing.T) {
 	buf := bytes.NewBufferString("{\"Game\": \"fourup\", \"FirstMove\": \"invalid-parameter\"}")
 
 	// Reassign the player getter function to return no database rows.
-	playerGetter = func(playerName string) (*arena.Player, error) {
-		return GetFakePlayer(playerName), nil
+	getDatastore = func() engine.Datastore {
+		return engine.DummyDatastore{}
 	}
-	// Once the test finishes, reassign it again to the proper value
-	defer reassignPlayerGetter(arena.GetPlayerByName)
+	defer reassignDatastoreGetter()
 
 	r.HandleFunc("/players/{player}/invitations", InvitationsHandler)
 	req, _ := http.NewRequest("POST", "http://localhost/players/kevinburke/invitations", buf)
@@ -174,11 +172,6 @@ func TestInviteInvalidMove(t *testing.T) {
 	if err.Type != "invalid-first-move" {
 		t.Errorf("Expected error type to be 'invalid-first-move', was '%s'", err.Type)
 	}
-}
-
-// Reassign the pointer used in the server function to retrieve a player.
-func reassignPlayerGetter(to func(string) (*arena.Player, error)) {
-	playerGetter = to
 }
 
 //type MatchResponses struct {
