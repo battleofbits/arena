@@ -1,4 +1,4 @@
-.PHONY: database arena
+.PHONY: database arena test
 
 export GOPATH:=$(shell pwd)
 
@@ -20,3 +20,6 @@ clean:
 
 arena:
 	go install arena
+
+test:
+	go test arena
