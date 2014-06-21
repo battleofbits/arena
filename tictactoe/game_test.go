@@ -4,9 +4,12 @@ import (
 	"testing"
 )
 
-func TestGame(t *testing.T) {
-	g := NewGame()
-	g.Start()
+func TestHandlers(t *testing.T) {
+	for i := 0; i < 2; i++ {
+		g := NewGame(random, greedy)
+		g.Start()
+		t.Logf("%+v", g.Board)
+	}
 }
 
 func TestWinConditions(t *testing.T) {
@@ -27,7 +30,6 @@ func TestWinConditions(t *testing.T) {
 			0, O, X,
 		},
 	}
-
 	for _, win := range wins {
 		g := Game{Board: win}
 		if !g.IsOver() {
