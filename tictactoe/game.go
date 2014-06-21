@@ -1,9 +1,13 @@
 package tictactoe
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"math/rand"
+	"net/http"
 )
 
 type Piece int
@@ -78,6 +82,43 @@ func greedy(p Piece, board Board) (int, error) {
 		}
 	}
 	return 0, fmt.Errorf("no open spaces")
+}
+
+type HookPayload struct {
+	Piece Piece `json:"piece"`
+	Board Board `json:"board"`
+}
+
+type HookMove struct {
+	Space int `json:"space"`
+}
+
+func NewWebhookHandlerFunc(url string) HandlerFunc {
+	return func(p Piece, board Board) (int, error) {
+		payload := HookPayload{Piece: p, Board: board}
+		blob, err := json.MarshalIndent(payload, "", "  ")
+		if err != nil {
+			return 0, err
+		}
+		resp, err := http.Post(url, "application/json", bytes.NewReader(blob))
+		if err != nil {
+			return 0, err
+		}
+		if resp.StatusCode >= http.StatusBadRequest {
+			return 0, fmt.Errorf("hook %s returned status %d", url, resp.StatusCode)
+		}
+		defer resp.Body.Close()
+		data, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			return 0, err
+		}
+		var move HookMove
+		err = json.Unmarshal(data, &move)
+		if err != nil {
+			return 0, err
+		}
+		return move.Space, nil
+	}
 }
 
 type Game struct {
