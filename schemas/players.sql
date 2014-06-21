@@ -4,6 +4,7 @@ CREATE TABLE players (
     username varchar not null,
     /* Your unique id name */
     name varchar not null check (name <> ''),
-    url varchar not null
+    match_url varchar not null,
+    invite_url varchar not null
 );
 ALTER TABLE players ADD CONSTRAINT unique_name UNIQUE (name);
