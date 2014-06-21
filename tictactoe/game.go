@@ -147,7 +147,7 @@ func (g *Game) TakeTurn(p Player) error {
 	return g.Add(p.Piece, square)
 }
 
-func (g *Game) Start() {
+func (g *Game) Start() error {
 	for _, p := range g.Players {
 		go p.Play()
 	}
@@ -164,6 +164,7 @@ func (g *Game) Start() {
 	for _, p := range g.Players {
 		close(p.Updates)
 	}
+	return nil
 }
 
 func (g Game) IsOver() bool {
